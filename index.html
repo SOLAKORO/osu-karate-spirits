@@ -2266,6 +2266,7 @@ function vTitle(){
    <button class="btn ${has?'':'main'}" data-a="go" data-v="select">はじめから育成</button>
    <button class="btn" data-a="go" data-v="gacha">稽古パートナー召集（ガチャ）<span class="stones num small" style="margin-left:6px">${G.stones}</span></button>
    <button class="btn" data-a="go" data-v="deck">デッキ編成（${G.deck.length}/6）</button>
+   <button class="btn" data-a="go" data-v="cards">カード図鑑（${Object.keys(C).filter(id=>!C[id].hide&&id in G.col).length}/${Object.keys(C).filter(id=>!C[id].hide).length}）</button>
    <button class="btn" data-a="go" data-v="kumite">組手モード（操作して戦う）</button>
    <button class="btn" data-a="go" data-v="pvp">2人対戦（1P vs 2P）</button>
    <button class="btn" data-a="go" data-v="roster">選手名鑑（${G.roster.length}人）</button>
@@ -2280,7 +2281,7 @@ function vSelect(){
     <button class="pick ${P()==='kokoro'?'on':''}" data-a="base" data-v="kokoro"><span class="pfig">${photo('kokoro','full')}</span><b>女の子</b><span class="small mute">柔タイプ。しなやかな蹴りの女の子。「女子には負けない」という颯を見返す物語</span></button>
   </div>
   <div class="panel" style="display:flex;flex-direction:column;gap:8px"><label class="label" for="nm">名前（あとの選手登録でも変えられます）</label><input id="nm" class="inp" maxlength="8" value="${G.me.name||''}" placeholder="${P()==='kizuna'?'きずな':'こころ'}"></div>
-  <button class="btn main" data-a="decide">この主人公で決定</button>`;
+  <button class="btn main" data-a="decide">この主人公で育成開始<small class="bsub">オープニングへ</small></button><div class="small mute" style="text-align:center">仲間のデッキは、トップ画面の「デッキ編成」でいつでも変えられます</div>`;
 }
 function vGacha(){
   const owned=Object.keys(G.col).filter(id=>!C[id].hide).sort((a,b)=>RORD.indexOf(C[a].r)-RORD.indexOf(C[b].r));const all=Object.keys(C).filter(id=>!C[id].fixed&&!C[id].hide);
@@ -2300,7 +2301,8 @@ function vDeck(){
   <div class="cards">${cardHTML(PART(),'on')}${owned.map(id=>`<button data-a="tog" data-v="${id}" style="display:block;padding:0;text-align:left">${cardHTML(id,G.deck.includes(id)?'on':(G.deck.length>=6?'dim':''))}</button>`).join('')}</div>
   ${owned.length?'':'<div class="panel small mute">まだ仲間がいません。先にガチャで稽古パートナーを召集しましょう。</div>'}
   <div class="row"><button class="btn" data-a="auto" ${owned.length?'':'disabled'}>おまかせ編成</button><button class="btn" data-a="go" data-v="gacha">ガチャ</button></div>
-  <button class="btn main" data-a="start">${PN()}で育成開始<small class="bsub">オープニングへ</small></button>`;
+  <div class="panel small mute">育成は、トップ画面の「はじめから育成」から始めます。ここで決めたデッキは、つぎの育成で使われます。</div>
+  <button class="btn" data-a="go" data-v="cards">カード図鑑を見る</button>`;
 }
 function vMain(){
   const r=G.run,m=monthOf(r.t),b=r.belt;
@@ -2313,7 +2315,7 @@ function vMain(){
   const ptSum=Object.values(r.pt).reduce((a,v)=>a+v,0);
   ban.unshift(['cls',`大会：${r.natQ?'全国大会に出場決定':TCLS[r.cls||0].n}${r.worldQ?'・世界大会の出場権あり':''}`]);
   return `<div class="mn">
-  <div class="hud2">${av('me',34)}<div class="when">小${gradeOf(r.t)}<small>${m}月</small></div><span class="belt" style="--b:${BELTS[b].c}"><i class="${BELTS[b].s?'st':''}"></i>${BELTS[b].n}</span><span class="left">あと<b class="num">${TOTAL-r.t}</b>か月</span><button class="ic" data-a="sound" aria-label="音の設定">♪</button><button class="ic" data-a="go" data-v="title" aria-label="タイトルへ">≡</button></div>
+  <div class="hud2">${av('me',34)}<div class="when">小${gradeOf(r.t)}<small>${m}月</small></div><span class="belt" style="--b:${BELTS[b].c}"><i class="${BELTS[b].s?'st':''}"></i>${BELTS[b].n}</span><span class="left">あと<b class="num">${TOTAL-r.t}</b>か月</span><button class="ic" data-a="sound" aria-label="音の設定">♪</button><button class="ic" data-a="cal" aria-label="年間予定">📅</button><button class="ic" data-a="go" data-v="title" aria-label="タイトルへ">≡</button></div>
   ${r.chat?`<div class="chat sm"><span class="bust ${motionOf(r.chat.t)}">${bust(r.chat.who,exprOf(r.chat.t),r.chat.t)}</span><div><b>${C[r.chat.who].n}</b><p>${r.chat.t}</p></div></div>`:''}
   ${ban.length?`<div class="bans">${ban.map(([c,t])=>`<span class="bn ${c}">${t}</span>`).join('')}</div>`:''}
   <div class="panel cp">
@@ -2380,7 +2382,43 @@ function pvGo(){const a=pvFighter(PV.a,PV.pw),b=pvFighter(PV.b,PV.pw);if(PV.a===
     onEnd:(win,how)=>{if(!how){G.screen='pvp';render();return}
       show({lines:[],title:`${win?'1P':'2P'}の勝ち！（${how}）`,html:`<div class="small mute">${win?a.name:b.name} の勝利。礼をして、もう一度やってみよう。</div>`,
         choices:[{label:'もう一度',fn:()=>setTimeout(pvGo,30)},{label:'メニューへ',fn:()=>{G.screen='pvp';render()}}]})}})}
-function render(){app.innerHTML=({title:vTitle,select:vSelect,gacha:vGacha,deck:vDeck,main:vMain,reg:vReg,kumite:vKumite,roster:vRoster,pvp:vPvp}[G.screen]||vTitle)()}
+
+/* ================= カード図鑑（集めたカードの情報・育成で覚えられる技） ================= */
+function cardList(){return Object.keys(C).filter(id=>!C[id].hide).sort((a,b)=>(RORD.indexOf(C[a].r)-RORD.indexOf(C[b].r)))}
+function vCards(){const all=cardList(),have=id=>id in G.col,n=all.filter(have).length;
+  return `<div class="hud"><button class="btn sm" data-a="go" data-v="title">← もどる</button><h2 style="font-size:20px">カード図鑑</h2><span class="left num">${n}/${all.length}</span></div>
+  <div class="panel small">集めたカードをタップすると、くわしい情報が見られます。育成のイベントで<b>どんな技を覚えられるか</b>も書いてあります。まだ持っていないカードは、ガチャで召集しよう。</div>
+  <div class="cards">${all.map(id=>have(id)?`<button data-a="cardv" data-v="${id}" style="display:block;padding:0;text-align:left">${cardHTML(id)}</button>`:`<div class="card ${C[id].r} dim" style="opacity:.45"><span class="av" style="--s:40px;display:grid;place-items:center">？</span><div class="info"><div class="nm">？？？</div><div class="meta">未入手</div></div><span class="rar">${C[id].r}</span></div>`).join('')}</div>
+  <div class="row"><button class="btn" data-a="go" data-v="gacha">ガチャへ</button></div>`}
+function cardDetail(id){const c=C[id];if(!c||!(id in G.col))return;clickS();
+  const ty=TYPES[c.t==='sup'?'shin':c.t],sk=SK[c.sk],isSSR=c.r==='SSR',cat=mainCat(id),gain=ty.gain;
+  const bars=Object.keys(PTN).map(k=>`<div style="display:flex;align-items:center;gap:6px;font-size:12px"><b style="width:18px;color:${PTC[k]}">${PTN[k]}</b><div style="flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden"><i style="display:block;height:100%;width:${Math.min(100,(gain[k]||0)*4)}%;background:${PTC[k]}"></i></div><span class="num" style="width:26px;text-align:right">${gain[k]||0}</span></div>`).join('');
+  const ph=photo(id,'full')||artSVG(artOf(id),'idle','normal','full');
+  const need=isSSR?'必殺技「'+(sk?sk.n:'')+'」を習得':'「'+(sk?sk.n:'')+'」のコツ Lv+2';
+  const html=`<div style="display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:start"><div style="height:150px;display:flex;justify-content:center">${ph}</div>
+    <div><div class="small mute">${c.cat}　${c.r}</div><div style="font-weight:800;font-size:18px">${c.n}</div><div class="small">得意：<b>${TYPE_N[c.t]}</b>${c.t==='sup'?'':'（'+ty.train+'）'}</div><div class="small">絆　${lb(id)?'◆'.repeat(lb(id))+' '+lb(id)+'凸':'まだ凸なし'}</div></div></div>
+    <div><div class="label" style="margin:6px 0 4px">稽古でのポイント（得意稽古のとき）</div><div style="display:flex;flex-direction:column;gap:4px">${bars}</div></div>
+    <div class="panel"><div class="label" style="margin-bottom:4px">育成で覚えられる技</div><b>${sk?sk.n:'―'}</b><div class="small mute">${sk?sk.d:''}</div></div>
+    <div class="panel small"><div class="label" style="margin-bottom:4px">育成イベント（3段階）</div>
+      ① 絆+12、${PTN[cat]}ポイント+15<br>② 「${sk?sk.n:''}」のコツ Lv+1<br>③ ${need}${id===PART()?'（相棒は絆もさらにアップ）':''}<br><span class="mute">※③は、絆が60以上のときに起きます</span></div>
+    <div class="panel small"><div class="label" style="margin-bottom:4px">セリフ</div>${(c.L||[]).map(t=>`<div>${t}</div>`).join('')}</div>`;
+  show({lines:[],title:'',html,choices:[{label:'とじる',fn:()=>{}}]})}
+
+/* ================= 年間予定（これから12か月の行事） ================= */
+function yearPlan(){const r=G.run;if(!r)return;clickS();
+  const rows=[];const last=Math.min(TOTAL-1,r.t+11);
+  for(let t=r.t;t<=last;t++){const m=monthOf(t),g=gradeOf(t),items=[];
+    if([7,11,3].includes(m)){if(r.belt<11)items.push(['昇級審査の月','#ffd84a'])}
+    const T=tourOf({...r,t});if(T)items.push([T.n,'#ff8a65']);
+    if(m===1&&!r.natQ)items.push(['全国大会（出場権があれば）','#9aa3b8']);
+    if(m===2&&!r.worldQ&&[2,4,6].includes(g))items.push(['世界大会（出場権があれば）','#9aa3b8']);
+    if(m===8)items.push(['夏合宿（稽古1.5倍）','#7fd3ff']);
+    if(m===9&&SOU_T.includes(t))items.push(['ライバル・颯との組手','#c79aff']);
+    if(m===12)items.push(['クリスマス','#e57373']);if(m===2)items.push(['バレンタイン','#f48fb1']);
+    if(t===TOTAL-1)items.push(['卒業式','#ffd84a']);
+    rows.push(`<div style="display:grid;grid-template-columns:62px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);${t===r.t?'background:rgba(255,216,74,.08)':''}"><div><b class="num">${m}月</b><div class="small mute">小${g}${t===r.t?'・今月':''}</div></div><div style="display:flex;flex-wrap:wrap;gap:4px">${items.length?items.map(([x,c])=>`<span style="border:1px solid ${c};color:${c};border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;background:transparent">${x}</span>`).join(''):'<span class="small mute">ふだんの稽古</span>'}</div></div>`)}
+  show({lines:[],title:'年間予定',html:`<div class="small mute">これから12か月の行事です。審査は、帯の条件をみたしているときだけ受けられます。</div><div>${rows.join('')}</div>`,choices:[{label:'とじる',fn:()=>{}}]})}
+function render(){app.innerHTML=({title:vTitle,select:vSelect,gacha:vGacha,deck:vDeck,main:vMain,reg:vReg,kumite:vKumite,roster:vRoster,pvp:vPvp,cards:vCards}[G.screen]||vTitle)()}
 
 /* ================= actions ================= */
 const A={
@@ -2388,7 +2426,7 @@ const A={
   cont:()=>{G.screen='main';render()},
   base:v=>{const nm=$('#nm');G.me.base=v;G.me.look='self';if(!nm||!nm.value||nm.value==='きずな'||nm.value==='こころ')G.me.name=v==='kizuna'?'きずな':'こころ';normDeck();save();render()},
   look:v=>{G.me.look=v;save();render()},
-  decide:()=>{const nm=$('#nm');G.me.name=(nm&&nm.value.trim())||(P()==='kizuna'?'きずな':'こころ');const others=Object.keys(G.col).filter(id=>!C[id].fixed&&!C[id].hide);G.screen=others.length?'deck':'gacha';save();render();window.scrollTo(0,0)},
+  decide:()=>{const nm=$('#nm');G.me.name=(nm&&nm.value.trim())||(P()==='kizuna'?'きずな':'こころ');normDeck();startRun();window.scrollTo(0,0)},
   pull:v=>pull(+v),
   tog:id=>{const i=G.deck.indexOf(id);if(i>=0)G.deck.splice(i,1);else if(G.deck.length<6)G.deck.push(id);save();render()},
   auto:()=>{const o=Object.keys(G.col).filter(id=>id!==P()&&id!==PART()&&!C[id].hide).sort((a,b)=>(RORD.indexOf(C[a].r)-RORD.indexOf(C[b].r))||(lb(b)-lb(a)));G.deck=[PART(),...o.slice(0,5)];save();render()},
@@ -2400,6 +2438,7 @@ const A={
   spar:()=>{const pool=G.deck.filter(id=>C[id].t!=='sup');spar(pick(pool.length?pool:[PART()]),null,()=>{})},
   fight:id=>{const src=G.kfighter!=null?G.roster[G.kfighter]:null;spar(id,src,()=>{})},
   pva:v=>{PV.a=v;render()},pvb:v=>{PV.b=v;render()},pvw:v=>{PV.pw=+v;render()},pvgo:()=>pvGo(),
+  cardv:id=>cardDetail(id),cal:()=>yearPlan(),
   rview:i=>rosterView(+i),
   rfight:i=>{G.kfighter=+i;G.screen='kumite';save();render()},
   rlook:v=>{const nm=$('#rnm');if(nm)G.me.name=nm.value.trim()||G.me.name;G.me.look=v;save();render()},
