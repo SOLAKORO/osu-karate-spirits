@@ -981,7 +981,7 @@ function fightRT(o){
    <div class="pad"><button type="button" data-k="u" class="pu">奥<br>↑</button><button type="button" data-k="l" class="pl">◀</button><button type="button" data-k="r" class="pr2">▶</button><button type="button" data-k="d" class="pd">↓<br>手前</button></div>
    <div class="acts"><button type="button" data-k="g" class="gd">受け<small>押し続ける</small></button>${mv.map(m=>`<button type="button" data-mv="${m}" class="mvb lv-${MV[m].lv}">${MV[m].n}<small>${MV[m].lv==='high'?'上段':MV[m].lv==='low'?'下段':'中段'}${MV[m].tr?'・回し':''}</small></button>`).join('')}${gold.map(m=>`<button type="button" data-mv="${m}" class="mvb gold">${MV[m].n}<small>必殺・気力MAX</small></button>`).join('')}</div>
   </div>
-  <div class="bt-help">◀▶で前後、奥・手前でサイドステップ。まっすぐの技（突き・前蹴り）は横によけられ、「回し」の技は横にいても当たる。顔面への突きは反則なので、突きはボディ。<br>Joy-Con・コントローラー：スティック/十字キーで移動、${padMap||'Aで技'}、L/ZLで受け、R/ZRで必殺。キーボード：矢印・Zで受け・X〜Nで技・スペースで必殺</div>`;
+  <div class="bt-help">◀▶で前後、奥・手前でサイドステップ。まっすぐの技（突き・前蹴り）は横によけられ、「回し」の技は横にいても当たる。顔面への突きは反則なので、突きはボディ。<br>Joy-Con・コントローラー：スティック/十字キーで移動、${padMap||'Aで技'}、L/ZLで受け、R/ZRで必殺。キーボード：矢印・Zで受け・X・C・V・B・N・Mで技（画面のボタンの左から順）・スペースで必殺</div>`;
  const mv2=o.pvp?o.en.skills.filter(k=>MV[k]&&!MV[k].ki).slice(0,6):[],gold2=o.pvp?o.en.skills.filter(k=>MV[k]&&MV[k].ki):[];
  if(o.pvp){const c1=ov.querySelector('.bt-ctl'),c2=c1.cloneNode(true);c2.classList.add('p2');
   const SW={l:'r',r:'l',u:'d',d:'u'};
@@ -1986,21 +1986,21 @@ function souApply(){const lv=souBeltLevel();if(lv===SOU_LV&&SOU_SRC.idle)return 
     x.putImageData(d,0,0);SOU_SRC[p]=cv.toDataURL('image/png')}catch(e){}res()};
     im.onerror=()=>res();im.src=`assets/pose/sou-${p}.webp`}))).then(()=>{SOU_LV=lv;if(SOU_SRC.idle)IMG.sou=SOU_SRC.idle;delete FSL.sou;delete FSP.sou})}
 function souData(nm){const P_=PART();return [
- {f:.9,t:'合同稽古　颯との出会い',
-  b:{pre:[{who:null,t:'9月。他の道場との合同稽古の日。'},{who:'sou',t:'「……お前が、空心道場のやつか」'},{who:'sou',t:'「俺は颯。同い年のやつには、負けたくない」'},{who:'me',t:`「ぼくは${nm}。よろしくね！」`},{who:'sou',t:'「よろしくじゃない。一本、やるぞ」'},{who:P_,t:'「がんばって！　負けても、いい勉強になるよ！」'}],
+ {f:.9,t:'道場の稽古　颯との組手',
+  b:{pre:[{who:null,t:'9月。道場の稽古の日。今日は、颯と組手をすることになった。'},{who:'sou',t:'「……入門の日に会ったな。今日こそ、お前と組手だ」'},{who:'sou',t:'「同じ道場の、同い年のお前には、負けたくない」'},{who:'me',t:'「うん！ ぼくも、負けないよ！」'},{who:'sou',t:'「当たり前だ。一本、やるぞ」'},{who:P_,t:'「がんばって！　負けても、いい勉強になるよ！」'}],
      win:[{who:'sou',t:'「……っ！　ま、まぐれだ。次は負けない」'},{who:P_,t:'「すごい！　颯くん、すごく悔しそうだったね」'}],
      lose:[{who:'sou',t:'「ふん。こんなものか」'},{who:'sou',t:'「……でも、お前の突き、悪くなかった」'},{who:P_,t:'「くやしいね……。次は勝とう！」'}]},
-  g:{pre:[{who:null,t:'9月。他の道場との合同稽古の日。'},{who:'sou',t:'「……女子か。手加減はしないぞ」'},{who:'sou',t:'「俺は颯。同い年の女子に、負けるわけにはいかない」'},{who:'me',t:`「わたしは${nm}。女の子でも、空手はできるよ！」`},{who:'sou',t:'「口だけならなんとでも言える。一本、やるぞ」'},{who:P_,t:'「がんばって！　ぜったい、見返してやろうね！」'}],
+  g:{pre:[{who:null,t:'9月。道場の稽古の日。今日は、颯と組手をすることになった。'},{who:'sou',t:'「……女子か。手加減はしないぞ」'},{who:'sou',t:'「同じ道場の、同い年の女子に、負けるわけにはいかない」'},{who:'me',t:'「女の子でも、空手はできるよ！」'},{who:'sou',t:'「口だけならなんとでも言える。一本、やるぞ」'},{who:P_,t:'「がんばって！　ぜったい、見返してやろうね！」'}],
      win:[{who:'sou',t:'「くっ……女子だからって、あなどってた」'},{who:'sou',t:'「……次は本気でいく。覚えとけ」'},{who:P_,t:'「やったね！　見返せたね！」'}],
      lose:[{who:'sou',t:'「ほら見ろ。……でも、最後まで目をそらさなかったのは、認めてやる」'},{who:P_,t:'「くやしいね……。でも、認めてくれたよ！」'}]}},
- {f:1.0,t:'合同稽古　3年生の再戦',
-  b:{pre:[{who:null,t:'3年生の9月。合同稽古で、また颯と顔を合わせた。'},{who:'sou',t:'「久しぶりだな。……俺、毎日千回、突いてるんだ」'},{who:'me',t:'「千回！？　ぼくだって、負けないよ！」'},{who:'sou',t:'「お前がいるから、休めないんだ。……ほら、構えろ」'}],
+ {f:1.0,t:'道場の稽古　3年生の再戦',
+  b:{pre:[{who:null,t:'3年生の9月。道場の稽古で、また颯と組手をすることになった。'},{who:'sou',t:'「久しぶりだな。……俺、毎日千回、突いてるんだ」'},{who:'me',t:'「千回！？　ぼくだって、負けないよ！」'},{who:'sou',t:'「お前がいるから、休めないんだ。……ほら、構えろ」'}],
      win:[{who:'sou',t:'「……強くなったな。くやしいけど、うれしい」'},{who:'me',t:'「ぼくも、颯がいるから、がんばれるんだ」'}],
      lose:[{who:'sou',t:'「まだ、俺のほうが上だ。……でも、ほんの少しだけだったな」'},{who:'me',t:'「次は、ぜったい勝つ！」'}]},
-  g:{pre:[{who:null,t:'3年生の9月。合同稽古で、また颯と顔を合わせた。'},{who:'sou',t:'「……また会ったな。あのときの借りを返しにきた」'},{who:'me',t:'「受けて立つよ！」'},{who:'sou',t:`「もう、女子だからなんて思ってない。${nm}は、俺の敵だ」`}],
+  g:{pre:[{who:null,t:'3年生の9月。道場の稽古で、また颯と組手をすることになった。'},{who:'sou',t:'「……また会ったな。あのときの借りを返しにきた」'},{who:'me',t:'「受けて立つよ！」'},{who:'sou',t:`「もう、女子だからなんて思ってない。${nm}は、俺の敵だ」`}],
      win:[{who:'sou',t:`「……強いな。女子だからじゃない。${nm}が強いんだ」`},{who:'me',t:'「ありがとう。颯も、すごくきれいな突きだったよ」'}],
      lose:[{who:'sou',t:'「俺の勝ちだ。……でも、今のは、ひやっとした」'},{who:'me',t:'「次は、ぜったい勝つ！」'}]}},
- {f:1.08,t:'合同稽古　全国大会の前に',
+ {f:1.08,t:'道場の稽古　全国大会の前に',
   b:{pre:[{who:null,t:'5年生の9月。全国大会が近づいてきた。'},{who:'sou',t:'「全国大会、お前も出るんだろ」'},{who:'sou',t:'「決勝で当たるまで、ぜったい負けるなよ。……その前に、一本やるぞ」'},{who:P_,t:'「ふたりとも、ほんとに仲がいいね！」'},{who:'sou',t:'「仲良くない！」'}],
      win:[{who:'sou',t:'「……さすがだ。これで、決勝がますます楽しみになった」'}],
      lose:[{who:'sou',t:'「まだまだだな。全国で、俺に追いついてみろ」'}]},
