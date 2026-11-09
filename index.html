@@ -272,6 +272,10 @@ table.rates td:last-child{text-align:right;white-space:nowrap}
 .acts .lv-high{border-color:#ff8a65}.acts .lv-low{border-color:#81c784}
 .acts .gold{background:linear-gradient(135deg,#6a4a08,#c99a2a);color:#fff}
 .pad button.on,.acts button.on{background:var(--shu)!important}
+.bt-ctl.p2{transform:rotate(180deg)}.pvtag{grid-column:1/-1;font-weight:700;font-size:12px;color:var(--mute)}
+.pvg{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;max-height:230px;overflow:auto}
+.pvc{display:flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);color:inherit;font-size:12px;font-weight:700}
+.pvc.sel{border-color:var(--gold);background:#3a3018}
 .bt-help{max-width:640px;font-size:11px;color:var(--mute);line-height:1.5}
 @media (max-width:420px){.pad{grid-template-columns:repeat(3,42px);grid-template-rows:repeat(3,42px)}.acts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition:none!important}}
@@ -978,37 +982,56 @@ function fightRT(o){
    <div class="acts"><button type="button" data-k="g" class="gd">受け<small>押し続ける</small></button>${mv.map(m=>`<button type="button" data-mv="${m}" class="mvb lv-${MV[m].lv}">${MV[m].n}<small>${MV[m].lv==='high'?'上段':MV[m].lv==='low'?'下段':'中段'}${MV[m].tr?'・回し':''}</small></button>`).join('')}${gold.map(m=>`<button type="button" data-mv="${m}" class="mvb gold">${MV[m].n}<small>必殺・気力MAX</small></button>`).join('')}</div>
   </div>
   <div class="bt-help">◀▶で前後、奥・手前でサイドステップ。まっすぐの技（突き・前蹴り）は横によけられ、「回し」の技は横にいても当たる。顔面への突きは反則なので、突きはボディ。<br>Joy-Con・コントローラー：スティック/十字キーで移動、${padMap||'Aで技'}、L/ZLで受け、R/ZRで必殺。キーボード：矢印・Zで受け・X〜Nで技・スペースで必殺</div>`;
+ const mv2=o.pvp?o.en.skills.filter(k=>MV[k]&&!MV[k].ki).slice(0,6):[],gold2=o.pvp?o.en.skills.filter(k=>MV[k]&&MV[k].ki):[];
+ if(o.pvp){const c1=ov.querySelector('.bt-ctl'),c2=c1.cloneNode(true);c2.classList.add('p2');
+  const SW={l:'r',r:'l',u:'d',d:'u'};
+  c2.querySelectorAll('.pad [data-k]').forEach(b=>{b.dataset.k2=SW[b.dataset.k];b.removeAttribute('data-k')});
+  const lvT=m=>MV[m].lv==='high'?'上段':MV[m].lv==='low'?'下段':'中段';
+  c2.querySelector('.acts').innerHTML=`<button type="button" data-k2="g" class="gd">受け<small>押し続ける</small></button>`+mv2.map(m=>`<button type="button" data-mv2="${m}" class="mvb lv-${MV[m].lv}">${MV[m].n}<small>${lvT(m)}${MV[m].tr?'・回し':''}</small></button>`).join('')+gold2.map(m=>`<button type="button" data-mv2="${m}" class="mvb gold">${MV[m].n}<small>必殺・気力MAX</small></button>`).join('');
+  const tag=document.createElement('div');tag.className='pvtag';tag.textContent='2P（赤・右）';c2.prepend(tag);
+  const tag1=document.createElement('div');tag1.className='pvtag';tag1.textContent='1P（青・左）';c1.prepend(tag1);
+  ov.insertBefore(c2,ov.querySelector('.bt-cvw'));
+  ov.querySelector('.bt-help').innerHTML='<b>2人対戦</b>：同じ画面で2人が向かい合って遊びます（タブレットや、パソコンのキーボード向け）。<br><b>1P</b>（左）W A S D＝移動・F＝受け・Q E R T Y U＝技・スペース＝必殺<br><b>2P</b>（右）矢印キー＝移動・/＝受け・J K L ; N M＝技・Enter＝必殺<br>コントローラーは、1台目が1P、2台目が2Pになります。画面のボタンは、2Pが上向きです。';}
  ov.hidden=false;bgm('battle');
  if(!markImg&&typeof MARK_SRC!=='undefined'){markImg=new Image();markImg.src=MARK_SRC}
  const cv=ov.querySelector('canvas'),ctx=cv.getContext('2d');const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=600*dpr;cv.height=330*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
  const me=mkF(o.me,true,190),en=mkF(o.en,false,410);
- const keys={l:0,r:0,u:0,d:0,g:0};
- BT={o,me,en,ctx,dpr,keys,pk:{},want:null,fx:[],pops:[],dust:[],cut:null,hitstop:0,slow:0,sub:0,timer:(o.time||60)*60,clk:o.clock||1,done:false,doneT:0,shake:0,zoom:1,start:200,raf:0,gold,mv,prevBtn:[],bg:null};
+ const keys={l:0,r:0,u:0,d:0,g:0},keys2={l:0,r:0,u:0,d:0,g:0};
+ BT={o,me,en,ctx,dpr,keys,pk:{},want:null,fx:[],pops:[],dust:[],cut:null,hitstop:0,slow:0,sub:0,timer:(o.time||60)*60,clk:o.clock||1,done:false,doneT:0,shake:0,zoom:1,start:200,raf:0,gold,mv,prevBtn:[],bg:null,keys2,want2:null,pk2:{},prevBtn2:[],mv2,gold2};
  if(o.bg){const b0=BT,im=new Image();im.onload=()=>{b0.bg=im};im.src=`assets/bg/${o.bg}.webp`}
  ov.querySelectorAll('[data-k]').forEach(b=>{const k=b.dataset.k;const on=e=>{e.preventDefault();keys[k]=1;b.classList.add('on')};const off=()=>{keys[k]=0;b.classList.remove('on')};
   b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointerleave',off);b.addEventListener('pointercancel',off);b.addEventListener('contextmenu',e=>e.preventDefault())});
  ov.querySelectorAll('[data-mv]').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();BT.want=b.dataset.mv;b.classList.add('on');setTimeout(()=>b.classList.remove('on'),120)}));
- ov.querySelector('#bt-quit').onclick=()=>finish(BT.en,'降参');
- const KM={ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u',ArrowDown:'d',z:'g',Z:'g'},MK='xcvbnm';
- BT.kd=e=>{if(KM[e.key]){keys[KM[e.key]]=1;e.preventDefault()}const i=MK.indexOf(e.key.toLowerCase());if(i>=0&&mv[i])BT.want=mv[i];if(e.key===' '&&gold[0]){BT.want=gold[0];e.preventDefault()}};
- BT.ku=e=>{if(KM[e.key])keys[KM[e.key]]=0};
+ ov.querySelectorAll('[data-k2]').forEach(b=>{const k=b.dataset.k2;const on=e=>{e.preventDefault();keys2[k]=1;b.classList.add('on')};const off=()=>{keys2[k]=0;b.classList.remove('on')};
+  b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointerleave',off);b.addEventListener('pointercancel',off);b.addEventListener('contextmenu',e=>e.preventDefault())});
+ ov.querySelectorAll('[data-mv2]').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();BT.want2=b.dataset.mv2;b.classList.add('on');setTimeout(()=>b.classList.remove('on'),120)}));
+ ov.querySelector('#bt-quit').onclick=()=>o.pvp?closeFight():finish(BT.en,'降参');
+ const KM=o.pvp?{a:'l',A:'l',d:'r',D:'r',w:'u',W:'u',s:'d',S:'d',f:'g',F:'g'}:{ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u',ArrowDown:'d',z:'g',Z:'g'},MK=o.pvp?'qertyu':'xcvbnm';
+ const KM2={ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u',ArrowDown:'d','/':'g'},MK2='jkl;nm';
+ BT.kd=e=>{if(o.pvp&&e.target&&/^(INPUT|TEXTAREA)$/.test(e.target.tagName))return;if(KM[e.key]){keys[KM[e.key]]=1;e.preventDefault()}const i=e.key.length===1?MK.indexOf(e.key.toLowerCase()):-1;if(i>=0&&mv[i])BT.want=mv[i];if(e.key===' '&&gold[0]){BT.want=gold[0];e.preventDefault()}
+  if(o.pvp){if(KM2[e.key]){keys2[KM2[e.key]]=1;e.preventDefault()}const j=e.key.length===1?MK2.indexOf(e.key.toLowerCase()):-1;if(j>=0&&mv2[j])BT.want2=mv2[j];if(e.key==='Enter'&&gold2[0]){BT.want2=gold2[0];e.preventDefault()}}};
+ BT.ku=e=>{if(KM[e.key])keys[KM[e.key]]=0;if(o.pvp&&KM2[e.key])keys2[KM2[e.key]]=0};
  window.addEventListener('keydown',BT.kd);window.addEventListener('keyup',BT.ku);
  Promise.all([...[o.me.art,o.en.art].flatMap(a=>FPOSES.map(([p,e])=>loadSpr(a,p,e))),fsLoad(o.me.sid),fsLoad(o.en.sid)]).then(()=>o.finalIntro?(BT&&draw(),finalIntro(ov)):0).then(()=>{if(!BT)return;let last=performance.now(),acc=0;
   const loop=now=>{if(!BT)return;acc+=Math.min(60,now-last);last=now;while(BT&&acc>=16.67){acc-=16.67;tick()}if(!BT)return;draw();BT.raf=requestAnimationFrame(loop)};BT.raf=requestAnimationFrame(loop)});
 }
-function pollPad(){
- const P=BT.pk={l:0,r:0,u:0,d:0,g:0};let gp=null;
- try{for(const g of (navigator.getGamepads?navigator.getGamepads():[]))if(g&&g.connected){gp=g;break}}catch(e){}
- const badge=document.getElementById('padb');if(badge)badge.hidden=!gp;
+function padRead(gp,P,pk,mvs,golds,wk){
  if(!gp)return;
  const ax=gp.axes||[],b=gp.buttons||[],pr=i=>!!(b[i]&&(b[i].pressed||b[i].value>.5));
  if((ax[0]||0)<-.4||pr(14))P.l=1;if((ax[0]||0)>.4||pr(15))P.r=1;if((ax[1]||0)<-.4||pr(12))P.u=1;if((ax[1]||0)>.4||pr(13))P.d=1;
  if(pr(4)||pr(6))P.g=1;
- const now=b.map((_,i)=>pr(i)),prev=BT.prevBtn;
+ const now=b.map((_,i)=>pr(i)),prev=BT[pk];
  const edge=i=>now[i]&&!prev[i];
- [0,1,2,3].forEach(i=>{if(edge(i)&&BT.mv[i])BT.want=BT.mv[i]});
- if((edge(5)||edge(7))&&BT.gold[0])BT.want=BT.gold[0];
- BT.prevBtn=now;
+ [0,1,2,3].forEach(i=>{if(edge(i)&&mvs[i])BT[wk]=mvs[i]});
+ if((edge(5)||edge(7))&&golds[0])BT[wk]=golds[0];
+ BT[pk]=now;
+}
+function pollPad(){
+ const P=BT.pk={l:0,r:0,u:0,d:0,g:0};const gps=[];
+ try{for(const g of (navigator.getGamepads?navigator.getGamepads():[]))if(g&&g.connected)gps.push(g)}catch(e){}
+ const badge=document.getElementById('padb');if(badge)badge.hidden=!gps.length;
+ padRead(gps[0],P,'prevBtn',BT.mv,BT.gold,'want');
+ if(BT.o.pvp){const P2=BT.pk2={l:0,r:0,u:0,d:0,g:0};padRead(gps[1],P2,'prevBtn2',BT.mv2,BT.gold2,'want2')}
 }
 function pop(text,x,y,col,size){BT.pops.push({text,x,y,t:0,col:col||'#fff',size:size||30})}
 function spark(x,y,col,big){BT.fx.push({x,y,t:0,col,big})}
@@ -1056,8 +1079,8 @@ function stepF(f,o){
  if(Math.abs(f.z-o.z)<.4&&Math.abs(f.x-o.x)<36&&f.state!=='down'&&o.state!=='down'){f.x-=f.face*1.5}
  f.x=Math.max(40,Math.min(560,f.x));f.z=Math.max(-1,Math.min(1,f.z));
 }
-function playerIn(f){const k=BT.keys,p=BT.pk,K=n=>k[n]||p[n];
- if(BT.want&&canAct(f)){startMv(f,BT.want);BT.want=null}
+function playerIn(f,sel){const two=sel===2,k=two?BT.keys2:BT.keys,p=two?BT.pk2:BT.pk,K=n=>k[n]||p[n];
+ if(two){if(BT.want2&&canAct(f)){startMv(f,BT.want2);BT.want2=null}}else if(BT.want&&canAct(f)){startMv(f,BT.want);BT.want=null}
  if(!canAct(f))return;
  if(K('g')){f.state='guard';return}
  const dx=(K('r')?1:0)-(K('l')?1:0),dz=(K('d')?1:0)-(K('u')?1:0);
@@ -1095,7 +1118,7 @@ function step(){const {me,en}=BT;
   if(BT.start===40){pop('始め！',300,150,'#ffffff',56);taiko(5);if(typeof speakJa==='function')speakJa('はじめ')}
   return}
  if(BT.done){BT.doneT++;if(BT.doneT===150)closeFight();return}
- pollPad();playerIn(me);aiIn(en,me);stepF(me,en);stepF(en,me);
+ pollPad();if(BT.o.pvp){playerIn(me,1);playerIn(en,2)}else{playerIn(me);aiIn(en,me)}stepF(me,en);stepF(en,me);
  if(--BT.timer<=0){const w=me.hp/me.max>=en.hp/en.max?me:en;pop('判定！',300,150,'#ffffff',44);finish(w,'判定')}
 }
 function closeFight(){const b=BT;cancelAnimationFrame(b.raf);window.removeEventListener('keydown',b.kd);window.removeEventListener('keyup',b.ku);
@@ -2244,6 +2267,7 @@ function vTitle(){
    <button class="btn" data-a="go" data-v="gacha">稽古パートナー召集（ガチャ）<span class="stones num small" style="margin-left:6px">${G.stones}</span></button>
    <button class="btn" data-a="go" data-v="deck">デッキ編成（${G.deck.length}/6）</button>
    <button class="btn" data-a="go" data-v="kumite">組手モード（操作して戦う）</button>
+   <button class="btn" data-a="go" data-v="pvp">2人対戦（1P vs 2P）</button>
    <button class="btn" data-a="go" data-v="roster">選手名鑑（${G.roster.length}人）</button>
   </div>
   <div class="panel small mute">ガチャの石はすべてゲーム内の無料ポイントで、育成を1回終えるたびに600もらえます。<br>声：VOICEVOX:玄野武宏、白上虎太郎、春日部つむぎ</div>`;
@@ -2338,7 +2362,25 @@ function vKumite(){const ops=Object.keys(G.col).filter(id=>C[id].t!=='sup'&&id!=
   return `<div class="hud"><button class="btn sm" data-a="go" data-v="title">← もどる</button><h2 style="font-size:20px">組手モード</h2></div>
   <div class="panel small">${who?`使う選手：<b>${who.name}</b>（名鑑から変更）`:G.run?'いま育成中の能力と技で戦います。':'体験用の能力と技（後ろ廻し蹴り・究極の正拳突きなど）で戦います。選手名鑑の選手でも戦えます。'}<br>Joy-Conやゲームコントローラーをつなぐと、それで操作できます。</div>
   <div class="cards">${ops.map(id=>`<button data-a="fight" data-v="${id}" style="display:block;padding:0;text-align:left">${cardHTML(id)}</button>`).join('')}</div>`}
-function render(){app.innerHTML=({title:vTitle,select:vSelect,gacha:vGacha,deck:vDeck,main:vMain,reg:vReg,kumite:vKumite,roster:vRoster}[G.screen]||vTitle)()}
+
+/* ================= 2人対戦（同じ画面で1P vs 2P） ================= */
+const PV={a:'kizuna',b:'kokoro',pw:70};
+function pvIds(){return Object.keys(C).filter(id=>!C[id].hide&&ART[id]&&C[id].n)}
+function pvFighter(id,pw){const f=oppFighter(id,pw);STATS.forEach(([k])=>f.st[k]=pw);return f}
+function vPvp(){const ids=pvIds();if(!ids.includes(PV.a))PV.a=ids[0];if(!ids.includes(PV.b)||PV.b===PV.a)PV.b=ids.find(x=>x!==PV.a)||ids[0];
+  const chip=(side,id)=>`<button class="pvc${PV[side]===id?' sel':''}" data-a="pv${side}" data-v="${id}">${av(id,40)}<span>${C[id].n}</span></button>`;
+  return `<div class="hud"><button class="btn sm" data-a="go" data-v="title">← もどる</button><h2 style="font-size:20px">2人対戦</h2></div>
+  <div class="panel small">同じ画面で、2人が向かい合って戦います。パソコンのキーボード（1Pは左手側、2Pは右手側）か、タブレットを2人で囲んで遊べます。<br>ふたりの<b>強さは同じ</b>にそろえるので、操作のうまさで勝負です。コントローラーは2台まで使えます。</div>
+  <div class="panel"><b style="color:#7fd3ff">1P（左・青）</b>：${C[PV.a].n}<div class="pvg">${ids.map(id=>chip('a',id)).join('')}</div></div>
+  <div class="panel"><b style="color:#ff8a65">2P（右・赤）</b>：${C[PV.b].n}<div class="pvg">${ids.map(id=>chip('b',id)).join('')}</div></div>
+  <div class="panel small">強さ：${[[45,'やさしい'],[70,'ふつう'],[95,'つよい'],[120,'最強']].map(([v,n])=>`<button class="btn sm${PV.pw===v?' main':''}" data-a="pvw" data-v="${v}">${n}</button>`).join(' ')}</div>
+  <div class="menu"><button class="btn main" data-a="pvgo">対戦スタート！</button></div>`}
+function pvGo(){const a=pvFighter(PV.a,PV.pw),b=pvFighter(PV.b,PV.pw);if(PV.a===PV.b)b.name=b.name+'（2P）';
+  fightRT({me:a,en:b,pvp:1,title:`2人対戦　${a.name} vs ${b.name}`,bg:'local',
+    onEnd:(win,how)=>{if(!how){G.screen='pvp';render();return}
+      show({lines:[],title:`${win?'1P':'2P'}の勝ち！（${how}）`,html:`<div class="small mute">${win?a.name:b.name} の勝利。礼をして、もう一度やってみよう。</div>`,
+        choices:[{label:'もう一度',fn:()=>setTimeout(pvGo,30)},{label:'メニューへ',fn:()=>{G.screen='pvp';render()}}]})}})}
+function render(){app.innerHTML=({title:vTitle,select:vSelect,gacha:vGacha,deck:vDeck,main:vMain,reg:vReg,kumite:vKumite,roster:vRoster,pvp:vPvp}[G.screen]||vTitle)()}
 
 /* ================= actions ================= */
 const A={
@@ -2357,6 +2399,7 @@ const A={
   stat:()=>statUp(),bonds:()=>bonds(),sound:()=>soundPanel(),
   spar:()=>{const pool=G.deck.filter(id=>C[id].t!=='sup');spar(pick(pool.length?pool:[PART()]),null,()=>{})},
   fight:id=>{const src=G.kfighter!=null?G.roster[G.kfighter]:null;spar(id,src,()=>{})},
+  pva:v=>{PV.a=v;render()},pvb:v=>{PV.b=v;render()},pvw:v=>{PV.pw=+v;render()},pvgo:()=>pvGo(),
   rview:i=>rosterView(+i),
   rfight:i=>{G.kfighter=+i;G.screen='kumite';save();render()},
   rlook:v=>{const nm=$('#rnm');if(nm)G.me.name=nm.value.trim()||G.me.name;G.me.look=v;save();render()},
