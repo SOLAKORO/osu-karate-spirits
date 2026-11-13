@@ -935,7 +935,7 @@ const MV={
  kubisa:{n:'首相撲膝',pose:'knee',su:8,ac:12,rc:14,dmg:7,hits:2,rch:58,lv:'mid',tr:0,cost:12},
  ushiromawashi:{n:'後ろ廻し蹴り',pose:'khigh',spin:1,su:10,ac:7,rc:22,dmg:28,rch:108,lv:'high',tr:1,ki:1,counter:1.5},
  kakato:{n:'かかと落とし',pose:'khigh',su:14,ac:7,rc:22,dmg:26,rch:98,lv:'high',tr:0,ki:1,gb:1},
- domawashi:{n:'胴廻し回転蹴り',pose:'khigh',spin:2,su:12,ac:8,rc:30,dmg:34,rch:112,lv:'mid',tr:1,ki:1,missDown:60},
+ domawashi:{n:'胴廻し回転蹴り',pose:'khigh',roll:1,su:12,ac:8,rc:30,dmg:34,rch:112,lv:'mid',tr:1,ki:1,missDown:60},
  tobiushiro:{n:'飛び後ろ廻し',pose:'khigh',spin:1,jump:1,su:12,ac:8,rc:24,dmg:30,rch:112,lv:'high',tr:1,ki:1},
  kyukyoku:{n:'究極の正拳突き',pose:'punch',su:16,ac:6,rc:24,dmg:32,rch:86,lv:'mid',tr:0,ki:1,gb:1,flash:1},
  hakutsuru:{n:'白鶴の舞',pose:'khigh',su:8,ac:8,rc:20,dmg:24,rch:98,lv:'high',tr:1,ki:1,heal:15},
@@ -1148,12 +1148,13 @@ function drawF(f){const ctx=BT.ctx,y=fy(f),s=(1+f.z*.1)*.6;const [p,e]=poseOf(f)
  const m=f.state==='atk'&&MV[f.mv];let face=f.face,jy=0;
  if(m&&m.spin&&f.t<m.su*f.sc*.7)face=-face;
  if(m&&m.jump){const tot=(m.su+m.ac)*f.sc;jy=Math.sin(Math.min(1,f.t/tot)*Math.PI)*48}
+ let rollA=0;if(m&&m.roll){const t0=m.su*f.sc*.15,t1=(m.su+m.ac)*f.sc;if(f.t<t1){const q=Math.max(0,Math.min(1,(f.t-t0)/(t1-t0)));rollA=q*Math.PI*2*f.face;jy+=Math.sin(q*Math.PI)*52}}
  if(f.state==='walk')jy+=Math.abs(Math.sin(f.walk))*4;
  if(f.state==='idle')jy+=Math.sin(performance.now()/260+(f.isMe?0:1.5))*1.2;
  if(m&&m.ki&&f.t<(m.su+m.ac)*f.sc){ctx.save();ctx.globalAlpha=.45;const g=ctx.createRadialGradient(f.x,y-90*s,10,f.x,y-90*s,140*s);g.addColorStop(0,'#fff6c0');g.addColorStop(1,'rgba(255,200,60,0)');ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(f.x,y-90*s-jy,100*s,150*s,0,0,Math.PI*2);ctx.fill();ctx.restore()}
  // afterimages
  f.trail.forEach((t,i)=>{const ti=fsOf(f,t.p)||getSpr(f.d.art,t.p,'grit');if(!ti)return;ctx.save();ctx.globalAlpha=.12+i*.08;ctx.translate(t.x-f.face*(3-i)*6,fy(f)-jy);ctx.scale(face,1);ctx.drawImage(ti,-200*s,-320*s,400*s,332*s);ctx.restore()});
- if(img){ctx.save();ctx.translate(f.x,y-jy);ctx.scale(face,1);if(f.state==='hit'&&f.t<4){ctx.filter='brightness(2.2)'}ctx.drawImage(img,-200*s,-320*s,400*s,332*s);ctx.restore()}
+ if(img){ctx.save();ctx.translate(f.x,y-jy);if(rollA){ctx.translate(0,-95*s);ctx.rotate(rollA);ctx.translate(0,95*s)}ctx.scale(face,1);if(f.state==='hit'&&f.t<4){ctx.filter='brightness(2.2)'}ctx.drawImage(img,-200*s,-320*s,400*s,332*s);ctx.restore()}
  if(m&&m.spin&&f.t>=m.su*f.sc*.5&&f.t<(m.su+m.ac)*f.sc){ctx.strokeStyle=m.ki?'rgba(255,216,74,.8)':'rgba(255,255,255,.55)';ctx.lineWidth=7;ctx.beginPath();ctx.arc(f.x,y-95*s-jy,80*s,0,Math.PI*2);ctx.stroke()}
  if(f.slow>0){ctx.fillStyle='#9fc3e6';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText('足が効いている',f.x,y+18)}
 }
@@ -2285,12 +2286,15 @@ function slotCard(i){const s=G.slots[i];
   if(s&&s.run){const r=s.run,nm=(s.me&&s.me.name)||'',fin=r.t>=TOTAL;
     return `<div class="slot"><button class="btn ${G.slot===i?'main':''}" data-a="slotgo" data-v="${i}"><span><b>スロット${i+1}</b>　${nm}・${fin?'卒業（選手登録まち）':'小'+gradeOf(r.t)+' '+monthOf(r.t)+'月'}　つづきから</span></button><button class="btn sm" data-a="slotdel" data-v="${i}" aria-label="スロット${i+1}を消す">消す</button></div>`}
   return `<div class="slot"><button class="btn" data-a="slotgo" data-v="${i}"><span><b>スロット${i+1}</b>　（あき）はじめから育成</span></button></div>`}
+function vSlots(){
+  return `<div class="hud"><button class="btn sm" data-a="go" data-v="title">← もどる</button><h2 style="font-size:20px">選手育成</h2></div>
+  <div class="panel small">育成データは3つまで、別々に保存できます。つづきから遊ぶか、あいているスロットで新しく育成をはじめよう。</div>
+  <div class="menu">${[0,1,2].map(slotCard).join('')}</div>`}
 function vTitle(){
   const has=G.run&&G.run.t<TOTAL&&G.screen!=='reg';
   return `${sndBtn()}<div class="hero">${logoHTML()}<div class="hero-chars"><img src="${IMG.kizuna}" alt="きずなくん"><img src="${IMG.kokoro}" alt="こころちゃん"></div><div class="sub">小学6年間で黒帯をめざす空手育成ゲーム</div></div>
   <div class="menu">
-    <div class="label" style="text-align:center">育成データ（3つまで）</div>
-    ${[0,1,2].map(slotCard).join('')}
+    <button class="btn main" data-a="go" data-v="slots">選手育成<span class="small" style="margin-left:8px;font-family:var(--body)">（スロット ${G.slots.filter(Boolean).length}/3）</span></button>
    <button class="btn" data-a="go" data-v="gacha">稽古パートナー召集（ガチャ）<span class="stones num small" style="margin-left:6px">${G.stones}</span></button>
    <button class="btn" data-a="go" data-v="deck">デッキ編成（${G.deck.length}/6）</button>
    <button class="btn" data-a="go" data-v="cards">カード図鑑（${Object.keys(C).filter(id=>!C[id].hide&&id in G.col).length}/${Object.keys(C).filter(id=>!C[id].hide).length}）</button>
@@ -2453,7 +2457,7 @@ function yearPlan(){const r=G.run;if(!r)return;clickS();
     if(t===TOTAL-1)items.push(['卒業式','#ffd84a']);
     rows.push(`<div style="display:grid;grid-template-columns:62px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);${t===r.t?'background:rgba(255,216,74,.08)':''}"><div><b class="num">${m}月</b><div class="small mute">小${g}${t===r.t?'・今月':''}</div></div><div style="display:flex;flex-wrap:wrap;gap:4px">${items.length?items.map(([x,c])=>`<span style="border:1px solid ${c};color:${c};border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;background:transparent">${x}</span>`).join(''):'<span class="small mute">ふだんの稽古</span>'}</div></div>`)}
   show({lines:[],title:'年間予定',html:`<div class="small mute">これから12か月の行事です。審査は、帯の条件をみたしているときだけ受けられます。</div><div>${rows.join('')}</div>`,choices:[{label:'とじる',fn:()=>{}}]})}
-function render(){app.innerHTML=({title:vTitle,select:vSelect,gacha:vGacha,deck:vDeck,main:vMain,reg:vReg,kumite:vKumite,roster:vRoster,pvp:vPvp,cards:vCards}[G.screen]||vTitle)()}
+function render(){app.innerHTML=({title:vTitle,select:vSelect,gacha:vGacha,deck:vDeck,main:vMain,reg:vReg,kumite:vKumite,roster:vRoster,pvp:vPvp,cards:vCards,slots:vSlots}[G.screen]||vTitle)()}
 
 /* ================= actions ================= */
 const A={
