@@ -1,9 +1,24 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+
 <meta charset="utf-8">
 <title>押忍！空手スピリッツ</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* ===== training slots / landscape 2P ===== */
+.slot{display:flex;gap:6px}.slot .btn:first-child{flex:1;justify-content:flex-start;text-align:left}
+#bt.land{--lh:100vh;display:grid;grid-template-columns:minmax(150px,1fr) minmax(0,3fr) minmax(150px,1fr);grid-template-rows:auto 1fr auto;grid-template-areas:"top top top" "c1 cv c2" "help help help";gap:6px 10px;align-items:center;justify-items:center;overflow:hidden}
+#bt.land .bt-top{grid-area:top;max-width:none}
+#bt.land .bt-cvw{grid-area:cv;width:min(100%,calc((var(--lh) - 110px)*600/330));max-width:none}
+#bt.land .bt-ctl{display:flex;flex-direction:column;gap:8px;width:auto;max-width:none;align-items:center}
+#bt.land .p1l{grid-area:c1}#bt.land .p2l{grid-area:c2}
+#bt.land .bt-help{grid-area:help;max-width:none;font-size:10px}
+#bt.land .acts{grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+#bt.land .acts button{min-height:40px}
+#bt.land .pad{grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px)}
+@media (orientation:portrait){#bt.land{--lh:100vw;inset:auto;top:0;left:100vw;width:100vh;height:100vw;transform:rotate(90deg);transform-origin:top left}}
+</style>
 <style>
 /* Layout: one phone-width column, a night dojo — indigo boards, vermilion for action, belt colours as status. */
 :root{
@@ -937,6 +952,8 @@ const FS_FLIP={kizuna:['seiken','mae','hiza','hit','zan'],kokoro:['seiken','mae'
 ['hina','minami','higa','sakura','nana','hachi'].forEach(i=>FS_FLIP[i]=['seiken','mae','zan']);
 ['oshiro','kuroda','mai','ken','yuta'].forEach(i=>FS_FLIP[i]=['jodan']);
 FS_FLIP.raijin=['seiken','hit','zan','jodan','hiza'];['oni','todoroki','hayate','hakutsuru'].forEach(i=>FS_FLIP[i]=['seiken','mae','hit','zan','jodan','hiza']);FS_FLIP.taiga.push('jodan');
+/* idle art that was drawn facing LEFT: mirrored so every fighter faces RIGHT (enemies on the right are then flipped to face left) */
+const FS_IDLE_FLIP=['aki','kancho','minjun','todoroki','sou','hayate','v-tetsu','v-kiba'];
 const FS_SRC={'v-araki':'assets/villain/araki-idle.webp','v-kiba':'assets/villain/kiba-idle.webp','v-fukumen':'assets/villain/fukumen-idle.webp','v-shikaku':'assets/villain/shikaku-idle.webp','v-tetsu':'assets/villain/tetsu-idle.webp'};
 function fsAnalyze(img){const w=img.naturalWidth,h=img.naturalHeight;const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(img,0,0);
   let d;try{d=x.getImageData(0,0,w,h).data}catch(e){return {tx:w/2,left:false}}
@@ -955,7 +972,7 @@ function fsLoad(sid){if(!sid)return Promise.resolve();if(FSL[sid])return FSL[sid
     for(const fp of Object.keys(FS_PROC)){const pn=FS_POSE[fp];
       if(im[pn])set[fp]=fsCompose(im[pn],k,null,false,!!(FS_FLIP[sid]&&FS_FLIP[sid].includes(pn)));
       else if(fp==='khigh'&&im.mae)set[fp]=fsCompose(im.mae,k,{r:-9},false,!!(FS_FLIP[sid]&&FS_FLIP[sid].includes('mae')));
-      else if(idleImg)set[fp]=fsCompose(idleImg,k,FS_PROC[fp],true)}
+      else if(idleImg)set[fp]=fsCompose(idleImg,k,FS_PROC[fp],true,FS_IDLE_FLIP.includes(sid))}
     FSP[sid]=set}catch(e){}})();return FSL[sid]}
 const fsOf=(f,p)=>{const s=f.d.sid&&FSP[f.d.sid];return (s&&s[p])||null};
 let BT=null;
@@ -971,7 +988,7 @@ const fspd=f=>(1.7+f.d.st.spd/55)*(f.slow>0?.6:1);
 const canAct=f=>f.state==='idle'||f.state==='walk'||f.state==='guard';
 function padConnected(){try{return [...(navigator.getGamepads?navigator.getGamepads():[])].some(g=>g&&g.connected)}catch(e){return false}}
 function fightRT(o){
- const ov=document.getElementById('bt');
+ const ov=document.getElementById('bt');ov.classList.toggle('land',!!(o.pvp&&o.land));
  const mv=o.me.skills.filter(k=>MV[k]&&!MV[k].ki).slice(0,6),gold=o.me.skills.filter(k=>MV[k]&&MV[k].ki);
  const padMap=mv.slice(0,4).map((m,i)=>`${['A','B','X','Y'][i]}:${MV[m].n}`).join('　');
  ov.innerHTML=`<div class="bt-top"><span class="bt-title">${o.title}</span><span class="pad-badge" id="padb" hidden>🎮 コントローラー接続中</span><button class="btn sm" type="button" id="bt-quit">${o.noQuit?'あきらめる':'降参する'}</button></div>
@@ -983,15 +1000,15 @@ function fightRT(o){
   </div>
   <div class="bt-help">◀▶で前後、奥・手前でサイドステップ。まっすぐの技（突き・前蹴り）は横によけられ、「回し」の技は横にいても当たる。顔面への突きは反則なので、突きはボディ。<br>Joy-Con・コントローラー：スティック/十字キーで移動、${padMap||'Aで技'}、L/ZLで受け、R/ZRで必殺。キーボード：矢印・Zで受け・X・C・V・B・N・Mで技（画面のボタンの左から順）・スペースで必殺</div>`;
  const mv2=o.pvp?o.en.skills.filter(k=>MV[k]&&!MV[k].ki).slice(0,6):[],gold2=o.pvp?o.en.skills.filter(k=>MV[k]&&MV[k].ki):[];
- if(o.pvp){const c1=ov.querySelector('.bt-ctl'),c2=c1.cloneNode(true);c2.classList.add('p2');
-  const SW={l:'r',r:'l',u:'d',d:'u'};
+ if(o.pvp){const c1=ov.querySelector('.bt-ctl'),c2=c1.cloneNode(true);c2.classList.add(o.land?'p2l':'p2');if(o.land)c1.classList.add('p1l');
+  const SW=o.land?{l:'l',r:'r',u:'u',d:'d'}:{l:'r',r:'l',u:'d',d:'u'};
   c2.querySelectorAll('.pad [data-k]').forEach(b=>{b.dataset.k2=SW[b.dataset.k];b.removeAttribute('data-k')});
   const lvT=m=>MV[m].lv==='high'?'上段':MV[m].lv==='low'?'下段':'中段';
   c2.querySelector('.acts').innerHTML=`<button type="button" data-k2="g" class="gd">受け<small>押し続ける</small></button>`+mv2.map(m=>`<button type="button" data-mv2="${m}" class="mvb lv-${MV[m].lv}">${MV[m].n}<small>${lvT(m)}${MV[m].tr?'・回し':''}</small></button>`).join('')+gold2.map(m=>`<button type="button" data-mv2="${m}" class="mvb gold">${MV[m].n}<small>必殺・気力MAX</small></button>`).join('');
   const tag=document.createElement('div');tag.className='pvtag';tag.textContent='2P（赤・右）';c2.prepend(tag);
   const tag1=document.createElement('div');tag1.className='pvtag';tag1.textContent='1P（青・左）';c1.prepend(tag1);
   ov.insertBefore(c2,ov.querySelector('.bt-cvw'));
-  ov.querySelector('.bt-help').innerHTML='<b>2人対戦</b>：同じ画面で2人が向かい合って遊びます（タブレットや、パソコンのキーボード向け）。<br><b>1P</b>（左）W A S D＝移動・F＝受け・Q E R T Y U＝技・スペース＝必殺<br><b>2P</b>（右）矢印キー＝移動・/＝受け・J K L ; N M＝技・Enter＝必殺<br>コントローラーは、1台目が1P、2台目が2Pになります。画面のボタンは、2Pが上向きです。';}
+  ov.querySelector('.bt-help').innerHTML=(o.land?'<b>2人対戦（横画面）</b>：左が1P・右が2Pのボタンです。':'<b>2人対戦</b>：同じ画面で2人が向かい合って遊びます')+'（タブレットや、パソコンのキーボード向け）。<br><b>1P</b>（左）W A S D＝移動・F＝受け・Q E R T Y U＝技・スペース＝必殺<br><b>2P</b>（右）矢印キー＝移動・/＝受け・J K L ; N M＝技・Enter＝必殺<br>コントローラーは、1台目が1P、2台目が2Pになります。'+(o.land?'':'画面のボタンは、2Pが上向きです。')+'';}
  ov.hidden=false;bgm('battle');
  if(!markImg&&typeof MARK_SRC!=='undefined'){markImg=new Image();markImg.src=MARK_SRC}
  const cv=ov.querySelector('canvas'),ctx=cv.getContext('2d');const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=600*dpr;cv.height=330*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -1352,7 +1369,7 @@ new MutationObserver(ms=>{ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType==
 /* ================= state ================= */
 const KEY='karate-spirits-v3';
 let G=null;
-function fresh(){return {screen:'title',stones:5000,col:{kokoro:0,kizuna:0},deck:['kokoro'],me:{base:'kizuna',look:'self',name:'きずな'},run:null,pulled:[],newIds:[],snd:true,voice:true,fxOn:true,furi:true,roster:[]}}
+function fresh(){return {screen:'title',stones:5000,col:{kokoro:0,kizuna:0},slots:[null,null,null],slot:-1,deck:['kokoro'],me:{base:'kizuna',look:'self',name:'きずな'},run:null,pulled:[],newIds:[],snd:true,voice:true,fxOn:true,furi:true,roster:[]}}
 /* Save data lives in TWO places: this browser (localStorage) and the artifact database (per-viewer private doc),
    so republishing the page or opening it in another browser never loses progress. */
 const LEGACY=['kumite-densetsu-v2'];
@@ -1360,12 +1377,18 @@ function load(){try{const s=localStorage.getItem(KEY);if(s)return JSON.parse(s)}
   for(const k of LEGACY){try{const s=localStorage.getItem(k);if(s){const o=JSON.parse(s);if(o&&o.col)return o}}catch(e){}}return null}
 let DBREF=null,dbTimer=null,dbBusy=false,dbSig='';
 const sigOf=()=>{try{return JSON.stringify(G,(k,v)=>k==='_t'?undefined:v)}catch(e){return ''}};
-const meaningful=()=>!!(G&&(G.run||(G.roster&&G.roster.length)||Object.keys(G.col||{}).length>2||G.stones!==5000));
-function save(){try{G._t=Date.now();localStorage.setItem(KEY,JSON.stringify(G))}catch(e){}dbQueue()}
+const meaningful=()=>!!(G&&(G.run||(G.slots&&G.slots.some(Boolean))||(G.roster&&G.roster.length)||Object.keys(G.col||{}).length>2||G.stones!==5000));
+/* three training slots: G.run / G.me always mirror the active slot (G.slot); slots[] keeps all three */
+const cloneJ=o=>JSON.parse(JSON.stringify(o));
+function syncSlot(){if(G.slot>=0&&G.slot<3){G.slots[G.slot]=G.run?{run:G.run,me:cloneJ(G.me)}:null}}
+function normSlots(){if(!Array.isArray(G.slots)||G.slots.length!==3)G.slots=[null,null,null];if(typeof G.slot!=='number')G.slot=-1;
+  if(G.slot>=0&&G.slots[G.slot]&&G.slots[G.slot].run){G.run=G.slots[G.slot].run;if(G.slots[G.slot].me)G.me=G.slots[G.slot].me}
+  else if(G.run){let i=G.slots.findIndex(s=>!s);if(i>=0){G.slot=i;G.slots[i]={run:G.run,me:cloneJ(G.me)}}}}
+function save(){try{G._t=Date.now();syncSlot();localStorage.setItem(KEY,JSON.stringify(G))}catch(e){}dbQueue()}
 function dbQueue(){if(!DBREF)return;clearTimeout(dbTimer);dbTimer=setTimeout(dbFlush,1500)}
 async function dbFlush(){if(!DBREF||dbBusy||!G)return;const s=sigOf();if(!s||s===dbSig||s.length>240000||!meaningful())return;dbBusy=true;try{G._t=G._t||Date.now();await DBREF.set({t:G._t,json:JSON.stringify(G)});dbSig=s}catch(e){}dbBusy=false;if(sigOf()!==dbSig)dbQueue()}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)dbFlush()});
-function adoptSave(r){G=r;const f=fresh();for(const k in f)if(G[k]===undefined)G[k]=f[k];if(!G.me.name)G.me.name=P()==='kizuna'?'きずな':'こころ';refreshNames();if((G.screen==='main'||G.screen==='reg')&&!G.run)G.screen='title';normDeck();try{localStorage.setItem(KEY,JSON.stringify(G))}catch(e){}dbSig=sigOf();render()}
+function adoptSave(r){G=r;const f=fresh();for(const k in f)if(G[k]===undefined)G[k]=f[k];if(!G.me.name)G.me.name=P()==='kizuna'?'きずな':'こころ';normSlots();refreshNames();if((G.screen==='main'||G.screen==='reg')&&!G.run)G.screen='title';normDeck();try{localStorage.setItem(KEY,JSON.stringify(G))}catch(e){}dbSig=sigOf();render()}
 async function dbInit(){try{const cl=window.claude;if(!cl||!cl.use)return;const [u,db]=await Promise.all([cl.use('user'),cl.use('db')]);const id=u&&await u.id();if(!db||!id)return;
   DBREF=db.doc('data/users/'+id+'/save');const snap=await DBREF.get();const lt=(G&&G._t)||0;
   if(snap.exists){const d=snap.data()||{};let r=null;try{r=JSON.parse(d.json)}catch(e){}
@@ -1733,6 +1756,7 @@ async function opening(){
 
 /* ================= run ================= */
 function startRun(){
+  if(G.slot<0||G.slot>2){const i=G.slots.findIndex(s=>!s);G.slot=i<0?0:i}
   normDeck();refreshNames();
   const bond={};G.deck.forEach(id=>bond[id]=(id===PART()?20:5)+lb(id)*10);
   G.run={t:0,st:{tai:10,chi:8,spd:10,flex:12,tough:8,waza:6,maai:6,kata:8,kiryoku:10,rei:12},pt:{body:30,tech:30,mind:30},
@@ -2257,13 +2281,16 @@ function soundPanel(){
 
 /* ================= screens ================= */
 const sndBtn=()=>`<div class="topbar"><button class="btn sm" data-a="furi">${G.furi!==false?'ふりがな ON':'ふりがな OFF'}</button><button class="btn sm" data-a="sound">♪ 音の設定</button></div>`;
+function slotCard(i){const s=G.slots[i];
+  if(s&&s.run){const r=s.run,nm=(s.me&&s.me.name)||'',fin=r.t>=TOTAL;
+    return `<div class="slot"><button class="btn ${G.slot===i?'main':''}" data-a="slotgo" data-v="${i}"><span><b>スロット${i+1}</b>　${nm}・${fin?'卒業（選手登録まち）':'小'+gradeOf(r.t)+' '+monthOf(r.t)+'月'}　つづきから</span></button><button class="btn sm" data-a="slotdel" data-v="${i}" aria-label="スロット${i+1}を消す">消す</button></div>`}
+  return `<div class="slot"><button class="btn" data-a="slotgo" data-v="${i}"><span><b>スロット${i+1}</b>　（あき）はじめから育成</span></button></div>`}
 function vTitle(){
   const has=G.run&&G.run.t<TOTAL&&G.screen!=='reg';
   return `${sndBtn()}<div class="hero">${logoHTML()}<div class="hero-chars"><img src="${IMG.kizuna}" alt="きずなくん"><img src="${IMG.kokoro}" alt="こころちゃん"></div><div class="sub">小学6年間で黒帯をめざす空手育成ゲーム</div></div>
   <div class="menu">
-   ${has?`<button class="btn main" data-a="cont">つづきから（${PN()}・小${gradeOf(G.run.t)} ${monthOf(G.run.t)}月）</button>`:''}
-   ${G.run&&G.run.t>=TOTAL?`<button class="btn main" data-a="go" data-v="reg">選手登録のつづき</button>`:''}
-   <button class="btn ${has?'':'main'}" data-a="go" data-v="select">はじめから育成</button>
+    <div class="label" style="text-align:center">育成データ（3つまで）</div>
+    ${[0,1,2].map(slotCard).join('')}
    <button class="btn" data-a="go" data-v="gacha">稽古パートナー召集（ガチャ）<span class="stones num small" style="margin-left:6px">${G.stones}</span></button>
    <button class="btn" data-a="go" data-v="deck">デッキ編成（${G.deck.length}/6）</button>
    <button class="btn" data-a="go" data-v="cards">カード図鑑（${Object.keys(C).filter(id=>!C[id].hide&&id in G.col).length}/${Object.keys(C).filter(id=>!C[id].hide).length}）</button>
@@ -2366,19 +2393,27 @@ function vKumite(){const ops=Object.keys(G.col).filter(id=>C[id].t!=='sup'&&id!=
   <div class="cards">${ops.map(id=>`<button data-a="fight" data-v="${id}" style="display:block;padding:0;text-align:left">${cardHTML(id)}</button>`).join('')}</div>`}
 
 /* ================= 2人対戦（同じ画面で1P vs 2P） ================= */
-const PV={a:'kizuna',b:'kokoro',pw:70};
+const PV={a:'kizuna',b:'kokoro',pw:70,land:1};
 function pvIds(){return Object.keys(C).filter(id=>!C[id].hide&&ART[id]&&C[id].n)}
-function pvFighter(id,pw){const f=oppFighter(id,pw);STATS.forEach(([k])=>f.st[k]=pw);return f}
-function vPvp(){const ids=pvIds();if(!ids.includes(PV.a))PV.a=ids[0];if(!ids.includes(PV.b)||PV.b===PV.a)PV.b=ids.find(x=>x!==PV.a)||ids[0];
-  const chip=(side,id)=>`<button class="pvc${PV[side]===id?' sel':''}" data-a="pv${side}" data-v="${id}">${av(id,40)}<span>${C[id].n}</span></button>`;
+const pvR=v=>/^r\d+$/.test(v)?G.roster[+v.slice(1)]:null;
+function pvList(){return [...G.roster.map((f,i)=>'r'+i),...pvIds()]}
+const pvName=v=>{const f=pvR(v);return f?f.name:(C[v]?C[v].n:v)};
+function pvFace(v,s){const f=pvR(v);if(!f)return av(v,s);const k=f.look&&f.look!=='self'&&IMG[f.look]?f.look:f.base;return `<span class="av" style="--s:${s}px">${photo(k,'face')||artSVG(f.art,'idle','normal','bust')}</span>`}
+function pvFighter(v,pw,oth){const f=pvR(v);
+  if(f){const d=myFighter(f);if(pw>0)STATS.forEach(([k])=>d.st[k]=pw);return d}
+  let p=pw;if(p<=0){const o=pvR(oth);p=o?Math.round(power(o.st,o.skills)*.9):70}
+  const d=oppFighter(v,p);STATS.forEach(([k])=>d.st[k]=p);return d}
+function vPvp(){const ids=pvList();if(!ids.includes(PV.a))PV.a=ids[0];if(!ids.includes(PV.b)||PV.b===PV.a)PV.b=ids.find(x=>x!==PV.a)||ids[0];
+  const chip=(side,id)=>`<button class="pvc${PV[side]===id?' sel':''}" data-a="pv${side}" data-v="${id}">${pvFace(id,40)}<span>${pvName(id)}${pvR(id)?'（育成）':''}</span></button>`;
   return `<div class="hud"><button class="btn sm" data-a="go" data-v="title">← もどる</button><h2 style="font-size:20px">2人対戦</h2></div>
-  <div class="panel small">同じ画面で、2人が向かい合って戦います。パソコンのキーボード（1Pは左手側、2Pは右手側）か、タブレットを2人で囲んで遊べます。<br>ふたりの<b>強さは同じ</b>にそろえるので、操作のうまさで勝負です。コントローラーは2台まで使えます。</div>
-  <div class="panel"><b style="color:#7fd3ff">1P（左・青）</b>：${C[PV.a].n}<div class="pvg">${ids.map(id=>chip('a',id)).join('')}</div></div>
-  <div class="panel"><b style="color:#ff8a65">2P（右・赤）</b>：${C[PV.b].n}<div class="pvg">${ids.map(id=>chip('b',id)).join('')}</div></div>
-  <div class="panel small">強さ：${[[45,'やさしい'],[70,'ふつう'],[95,'つよい'],[120,'最強']].map(([v,n])=>`<button class="btn sm${PV.pw===v?' main':''}" data-a="pvw" data-v="${v}">${n}</button>`).join(' ')}</div>
+  <div class="panel small">同じ画面で、2人が戦います。<b>育成したキャラ（選手名鑑）</b>も選べます。パソコンのキーボードか、タブレットを2人で囲んで遊べます。コントローラーは2台まで使えます。<br><b>強さ</b>：数字を選ぶと、ふたりの強さをそろえます。「育成のまま」は、育成したキャラはそのままの強さで戦い、カードのキャラは育成キャラに合わせた強さになります。</div>
+  <div class="panel"><b style="color:#7fd3ff">1P（左・青）</b>：${pvName(PV.a)}<div class="pvg">${ids.map(id=>chip('a',id)).join('')}</div></div>
+  <div class="panel"><b style="color:#ff8a65">2P（右・赤）</b>：${pvName(PV.b)}<div class="pvg">${ids.map(id=>chip('b',id)).join('')}</div></div>
+  <div class="panel small">強さ：${[[45,'やさしい'],[70,'ふつう'],[95,'つよい'],[120,'最強'],[0,'育成のまま']].map(([v,n])=>`<button class="btn sm${PV.pw===v?' main':''}" data-a="pvw" data-v="${v}">${n}</button>`).join(' ')}</div>
+  <div class="panel small">対戦の画面：<button class="btn sm${PV.land?' main':''}" data-a="pvland" data-v="1">横画面（ならんで）</button> <button class="btn sm${PV.land?'':' main'}" data-a="pvland" data-v="0">縦画面（向かい合い）</button><div class="mute" style="margin-top:4px">横画面は、左に1P・右に2Pのボタンが出ます。スマホやタブレットを縦に持っているときは、画面が自動で横向きに回ります（端末を横にすると、まっすぐになります）。</div></div>
   <div class="menu"><button class="btn main" data-a="pvgo">対戦スタート！</button></div>`}
-function pvGo(){const a=pvFighter(PV.a,PV.pw),b=pvFighter(PV.b,PV.pw);if(PV.a===PV.b)b.name=b.name+'（2P）';
-  fightRT({me:a,en:b,pvp:1,title:`2人対戦　${a.name} vs ${b.name}`,bg:'local',
+function pvGo(){const a=pvFighter(PV.a,PV.pw,PV.b),b=pvFighter(PV.b,PV.pw,PV.a);if(a.name===b.name)b.name=b.name+'（2P）';
+  fightRT({me:a,en:b,pvp:1,land:PV.land,title:`2人対戦　${a.name} vs ${b.name}`,bg:'local',
     onEnd:(win,how)=>{if(!how){G.screen='pvp';render();return}
       show({lines:[],title:`${win?'1P':'2P'}の勝ち！（${how}）`,html:`<div class="small mute">${win?a.name:b.name} の勝利。礼をして、もう一度やってみよう。</div>`,
         choices:[{label:'もう一度',fn:()=>setTimeout(pvGo,30)},{label:'メニューへ',fn:()=>{G.screen='pvp';render()}}]})}})}
@@ -2431,6 +2466,12 @@ const A={
   tog:id=>{const i=G.deck.indexOf(id);if(i>=0)G.deck.splice(i,1);else if(G.deck.length<6)G.deck.push(id);save();render()},
   auto:()=>{const o=Object.keys(G.col).filter(id=>id!==P()&&id!==PART()&&!C[id].hide).sort((a,b)=>(RORD.indexOf(C[a].r)-RORD.indexOf(C[b].r))||(lb(b)-lb(a)));G.deck=[PART(),...o.slice(0,5)];save();render()},
   start:()=>startRun(),
+  slotgo:v=>{const i=+v;syncSlot();G.slot=i;const s=G.slots[i];
+    if(s&&s.run){G.run=s.run;if(s.me)G.me=s.me;G.screen=s.run.t>=TOTAL?'reg':'main';normDeck();refreshNames()}
+    else{G.run=null;const b=G.me.base==='kokoro'?'kokoro':'kizuna';G.me={base:b,look:'self',name:b==='kizuna'?'きずな':'こころ'};G.screen='select';normDeck();refreshNames()}
+    save();render();window.scrollTo(0,0)},
+  slotdel:v=>{const i=+v;show({lines:[],title:`スロット${i+1}を消しますか？`,html:'<div class="small mute">この育成データは、消すと元にもどせません。</div>',choices:[{label:'消す',fn:()=>{if(G.slot===i){G.slot=-1;G.run=null}G.slots[i]=null;save();render()}},{label:'やめる'}]})},
+  pvland:v=>{PV.land=+v;render()},
   sel:v=>{if(G.run.inj>0)return;clickS();G.run.sel=G.run.sel===v?null:v;render()},
   train:()=>doTrain(),rest:()=>doRest(),clinic:()=>doClinic(),out:()=>doOut(),
   furi:()=>{G.furi=G.furi===false;save();render()},
@@ -2451,12 +2492,13 @@ app.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.d
 
 /* ================= boot ================= */
 const boot=d=>{G=(d&&d.G)||load()||fresh();const f=fresh();for(const k in f)if(G[k]===undefined)G[k]=f[k];
-  if(!G.me.name)G.me.name=P()==='kizuna'?'きずな':'こころ';refreshNames();
+  if(!G.me.name)G.me.name=P()==='kizuna'?'きずな':'こころ';normSlots();refreshNames();
   if(G.screen==='main'&&!G.run)G.screen='title';if(G.screen==='reg'&&!G.run)G.screen='title';normDeck();probe();render();dbInit()};
 window.claude?.hot?.snapshot?.(()=>({G}));
 window.claude?.hot?.ready?window.claude.hot.ready(boot):boot(window.claude?.hot?.data??{});
 
 })();
 </script>
+
 
 </body></html>
