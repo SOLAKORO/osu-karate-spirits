@@ -1482,7 +1482,7 @@ const POSES={kizuna:'kamae seiken mae gedan uke osu jodan hiza hit down win zan 
 /* 道場の生徒キャラ: 突き(seiken)の絵がそろった子から順に追加 */
 ['akari', 'akihito', 'atsushi', 'bashin', 'gaoto', 'hinata', 'kaita', 'kaito', 'kanata', 'kirato', 'maho', 'makita', 'nijito', 'raito', 'rami', 'rana', 'rino', 'ryoto', 'ryusei', 'saaya', 'shunshun', 'swan', 'taisei'].forEach(i=>POSES[i]=['seiken']);
 ['akari', 'akihito', 'atsushi', 'bashin', 'gaoto', 'hinata', 'kaita', 'kaito', 'kanata', 'kirato', 'maho', 'makita', 'nijito', 'raito', 'rami', 'rana', 'rino', 'ryoto', 'ryusei', 'saaya', 'shunshun', 'taisei'].forEach(i=>POSES[i].push('mae'));
-['akihito', 'bashin', 'gaoto', 'hinata', 'kaita', 'kanata', 'kirato', 'maho', 'makita', 'nijito', 'raito', 'taisei'].forEach(i=>POSES[i].push('hit'));
+['akari', 'akihito', 'atsushi', 'bashin', 'gaoto', 'hinata', 'kaita', 'kaito', 'kanata', 'kirato', 'maho', 'makita', 'nijito', 'raito', 'rami', 'rana', 'rino', 'ryoto', 'ryusei', 'saaya', 'shunshun', 'swan', 'taisei'].forEach(i=>POSES[i].push('hit'));
 POSES.sou=['seiken','mae','jodan','hiza','hit','down','zan'];VOICE.sou=['kotaro',1.1];
 POSES.raijin=['seiken','jodan','hiza','hit','down','zan'];['oni','todoroki','hayate','hakutsuru'].forEach(i=>POSES[i]=['seiken','mae','jodan','hiza','hit','down','zan']);
 const poseSrc=(k,p)=>(POSES[k]&&POSES[k].includes(p))?((k==='sou'&&SOU_SRC[p])||HB_SRC[k+'-'+p]||`assets/pose/${k}-${p}.webp`):null;
