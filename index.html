@@ -1466,7 +1466,8 @@ const IMG={kizuna:'assets/kizuna.webp',kokoro:'assets/kokoro.webp',
   kinjo:'assets/pose/kinjo-idle.webp',minjun:'assets/pose/minjun-idle.webp',ryu:'assets/pose/ryu-idle.webp',chai:'assets/pose/chai-idle.webp',sora:'assets/pose/sora-idle.webp',rin:'assets/pose/rin-idle.webp',
   ren:'assets/pose/ren-idle.webp',aki:'assets/pose/aki-idle.webp',taiga:'assets/pose/taiga-idle.webp',shion:'assets/pose/shion-idle.webp',hina:'assets/pose/hina-idle.webp',minami:'assets/pose/minami-idle.webp',
   higa:'assets/pose/higa-idle.webp',sakura:'assets/pose/sakura-idle.webp',nana:'assets/pose/nana-idle.webp',hachi:'assets/pose/hachi-idle.webp',
-  takeru:'assets/pose/takeru-idle.webp',sou:'assets/pose/sou-idle.webp'};
+  takeru:'assets/pose/takeru-idle.webp',sou:'assets/pose/sou-idle.webp',
+  makita:'assets/pose/makita-idle.webp',maho:'assets/pose/maho-idle.webp',nijito:'assets/pose/nijito-idle.webp',kirato:'assets/pose/kirato-idle.webp'};
 const KEXP={serious:'assets/kokoro-fudo.webp',kamae:'assets/kokoro-kamae.webp',kiai:'assets/kokoro-keri.webp',punch:'assets/kokoro-seiken.webp'};
 const photoKey=id=>id==='me'?(G.me.look==='self'?P():(IMG[G.me.look]?G.me.look:null)):(IMG[id]?id:null);
 function photoSrc(k,ex){if(k==='kokoro'&&ex&&KEXP[ex])return KEXP[ex];return IMG[k]}
