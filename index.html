@@ -1370,7 +1370,7 @@ new MutationObserver(ms=>{ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType==
 /* ================= state ================= */
 const KEY='karate-spirits-v3';
 let G=null;
-function fresh(){return {screen:'title',stones:5000,col:{kokoro:0,kizuna:0},slots:[null,null,null],slot:-1,deck:['kokoro'],me:{base:'kizuna',look:'self',name:'きずな'},run:null,pulled:[],newIds:[],snd:true,voice:true,fxOn:true,furi:true,roster:[]}}
+function fresh(){return {screen:'title',stones:5000,col:{kokoro:0,kizuna:0},slots:[null,null,null],slot:-1,combos:{},deck:['kokoro'],me:{base:'kizuna',look:'self',name:'きずな'},run:null,pulled:[],newIds:[],snd:true,voice:true,fxOn:true,furi:true,roster:[]}}
 /* Save data lives in TWO places: this browser (localStorage) and the artifact database (per-viewer private doc),
    so republishing the page or opening it in another browser never loses progress. */
 const LEGACY=['kumite-densetsu-v2'];
@@ -1800,14 +1800,49 @@ const ptxt=g=>Object.entries(g).map(([k,v])=>`${PTN[k]||SN[k]}${v>=0?'+':''}${v}
 const mainCat=id=>Object.keys(TYPES[C[id].t==='sup'?'shin':C[id].t].gain)[0];
 const TALK={go:['「ミット、手がしびれた…！」','「今の突き、重かった！」','「もう一本！思いっきり！」'],soku:['「速っ！見えなかった！」','「ステップ、軽くなったね」'],ju:['「蹴りが高くなってきたね」','「型、きれいになったよ」'],shin:['「心が静かになった……」','「礼がきれいだって、館長がほめてたよ」'],tai:['「ゼェゼェ……もう一周！？」','「足、まだ動く？」'],any:['「ナイス！その調子！」','「いい汗かいたね！」','「押忍！」']};
 function trainVoice(type){if(!G.voice)return;sayV('kancho','count-1');setTimeout(()=>sayV('kancho','count-2'),380);setTimeout(()=>sayV('kancho','count-3'),760);setTimeout(()=>sayV('me',type==='shin'?'osu':'sei'),1100)}
+/* ================= コンボ（稽古で同じ組にそろうと発動。発動したものだけコンボ図鑑にのる） ================= */
+const COMBOS=[
+ {id:'shitei',n:'師弟の絆',mem:['kancho','oshiro'],g:{mind:25},bond:5,say:[['kancho','「大城、お前がいると道場が締まる」'],['oshiro','「押忍。館長の背中を追いかけてきましたから」']]},
+ {id:'gouriki',n:'剛力の共鳴',mem:['raijin','todoroki'],g:{body:30,tech:10},fat:5,say:[['raijin','「ほう、いい拳を持っている」'],['todoroki','「そっちこそ。ひさびさに骨が鳴ったぜ」']]},
+ {id:'nageyose',n:'投げと寄り',mem:['aki','taiga'],g:{body:20,tech:15},say:[['taiga','「どすこい！ 組んだら離さんぞ」'],['aki','「その力、受け流してみせる！」']]},
+ {id:'kakutou',n:'格闘技交流会',mem:['minjun','ryu','chai'],g:{tech:35},mot:1,say:[['ryu','「蹴りだけじゃない、拳も見せてやる」'],['minjun','「ぼくの足技、見て見て！」'],['chai','「みんなの技、いただいた」']]},
+ {id:'hayatsuru',n:'疾風と白鶴の舞',mem:['hayate','hakutsuru'],g:{tech:25,mind:15},say:[['hakutsuru','「おやおや、風が舞っておるのう」'],['hayate','「ばあさん、そのステップ……見切れない！」']]},
+ {id:'nekoiyashi',n:'道場猫の癒やし',mem:['hachi','sakura'],fat:-25,mot:1,say:[['sakura','「ハチ、また稽古場でお昼寝？ ふふ」'],['hachi','「にゃあ」']]},
+ {id:'bankan',n:'万全のサポート',mem:['higa','nana'],g:{body:10},fat:-30,say:[['nana','「今日はたんぱく質多めにしました！」'],['higa','「筋肉のケアもばっちりだね」']]},
+ {id:'kouhairun',n:'先輩後輩の合同ラン',mem:['takeru','yuta','ken'],g:{body:30},say:[['takeru','「よし、ついてこい！ ペース上げるぞ」'],['ken','「ぜぇぜぇ……負けません！」'],['yuta','「ぼくも走れます！」']]},
+ {id:'douki',n:'同期の絆',mem:['mai','ken','hina'],g:{body:15,tech:15,mind:15},bond:5,say:[['mai','「みんなで強くなろうね！」'],['ken','「おう、置いてかれねえぞ」'],['hina','「えへへ、楽しいね！」']]},
+ {id:'shinzui',n:'武の真髄',mem:['kinjo','kancho','rin'],g:{mind:40},say:[['kinjo','「空手に先手なし。心を澄ませよ」'],['rin','「間合いの極意、胸に刻みます」'],['kancho','「……押忍。深い」']]},
+ {id:'kenkobushi',n:'剣と拳の間合い',mem:['rin','shion'],g:{tech:30},say:[['rin','「その間合い、いただきます」'],['shion','「伝統派の距離感、負けません」']]},
+ {id:'rival',n:'ライバルの火花',mem:['sou','ren'],g:{tech:25},mot:1,say:[['sou','「あいつには負けたくない」'],['ren','「それはこっちのセリフだ」']]},
+ {id:'shisho',n:'師匠と二人三脚',mem:['PART','kancho'],g:{mind:20},bond:8,say:[['kancho','「一本一本、心を込めて突け」'],['PART','「押忍！ 館長、もう一回お願いします！」']]},
+ {id:'oyako',n:'親子の稽古',mem:['minami','kancho'],g:{mind:15},bond:10,say:[['minami','「お父さん、今日は私が相手するね」'],['kancho','「……手加減はしないぞ」']]},
+ {id:'yamashima',n:'山と島の師',mem:['oni','kinjo'],g:{mind:35},bond:5,say:[['oni','「山で十年、突いてきた」'],['kinjo','「島で百年、受けてきた」']]},
+ {id:'genki',n:'元気コンビ',mem:['sora','hina'],mot:2,say:[['sora','「やっほー！ 今日もはりきっていこう！」'],['hina','「いえーい！」']]},
+ {id:'kuroboshi',n:'黒帯と先輩',mem:['kuroda','takeru'],g:{body:15,tech:15},say:[['kuroda','「ひさびさに全力でいくか」'],['takeru','「押忍！ お願いします！」']]},
+ {id:'hibana',n:'ライバルの宿命',mem:['PART','sou'],g:{tech:20,body:10},mot:1,say:[['sou','「今日こそ決着をつけてやる」'],['PART','「負けないよ！」']]},
+];
+const cbMem=m=>m==='PART'?PART():m;
+function comboCheck(ids){return COMBOS.filter(cb=>cb.mem.every(m=>ids.includes(cbMem(m))))}
+function comboTxt(cb){const a=[];if(cb.g)a.push(ptxt(cb.g));if(cb.fat)a.push(`疲れ${cb.fat>0?'+':''}${cb.fat}`);if(cb.mot)a.push(`やる気+${cb.mot}`);if(cb.bond)a.push(`絆+${cb.bond}`);return a.join('　')}
+function applyCombo(cb){const r=G.run;if(cb.g)addPt(cb.g);if(cb.fat)r.fat=clamp(r.fat+cb.fat,0,100);if(cb.mot)r.mot=Math.min(4,r.mot+cb.mot);
+  if(cb.bond)cb.mem.forEach(m=>{const id=cbMem(m);if(r.bond[id]!==undefined)r.bond[id]=clamp(r.bond[id]+cb.bond,0,100)});
+  cb.isNew=!G.combos[cb.id];G.combos[cb.id]=(G.combos[cb.id]||0)+1}
+function comboShow(cb,next){chime();
+  show({lines:cb.say.map(([w,t])=>({who:cbMem(w),t})),title:`コンボ発動！「${cb.n}」`,html:`<div class="gain">${comboTxt(cb)}</div>${cb.isNew?'<div class="banner" style="margin-top:8px">NEW！ コンボ図鑑にのりました</div>':''}`,then:next})}
+function vCombos(){const found=COMBOS.filter(c=>G.combos[c.id]).length;
+  return `<div class="hud"><button class="btn sm" data-a="go" data-v="title">← もどる</button><h2 style="font-size:20px">コンボ図鑑</h2><span class="left num">${found}/${COMBOS.length}</span></div>
+  <div class="panel small">育成の稽古で、特定の仲間が<b>同じ稽古にそろう</b>と「コンボ」が発動して、ボーナスがもらえます。発動したコンボだけがここにのります。いろんな組み合わせをためして、見つけよう！</div>
+  <div style="display:flex;flex-direction:column;gap:8px">${COMBOS.map(cb=>G.combos[cb.id]?`<div class="panel"><div style="display:flex;gap:4px;margin-bottom:6px">${cb.mem.map(m=>av(cbMem(m),36)).join('')}</div><b>${cb.n}</b><div class="small">${comboTxt(cb)}</div><div class="small mute">発動 ${G.combos[cb.id]}回　メンバー：${cb.mem.map(m=>nameOf(cbMem(m))).join('・')}</div></div>`:`<div class="panel dim" style="opacity:.5"><b>？？？</b><div class="small mute">まだ見つかっていないコンボ（${cb.mem.length}人の組み合わせ）</div></div>`).join('')}</div>`}
 function doTrain(){
   const r=G.run,type=r.sel;if(!type)return;
-  const ids=r.assign[type]||[],c=calc(type);
+  const ids=r.assign[type]||[],c=calc(type);const cbs=comboCheck(ids);
   addPt(c.g);r.fat=clamp(r.fat+c.fat,0,100);ids.forEach(id=>r.bond[id]=clamp(r.bond[id]+7,0,100));
   if((ids.includes('sakura')&&Math.random()<.2)||(ids.includes('hachi')&&Math.random()<.25))r.mot=Math.min(4,r.mot+1);
   trainSE(type);trainVoice(type);cutin(type);
   let msg=`${TYPES[type].train}！ ${ptxt(c.g)}`;if(c.fr.length)msg='友情稽古が発動！ '+msg;
+  cbs.forEach(applyCombo);
   const ev=[];
+  cbs.forEach(cb=>ev.push(n=>comboShow(cb,n)));
   if(c.fr.length)ev.push(n=>{chime();show({lines:[{who:c.fr[0],t:pick(['「いくよ、息を合わせて！」','「せーのっ！ セイッ！」','「今日の稽古、最高だったね！」'])},{who:'me',t:'「押忍！！」'}],title:'友情稽古！',html:`<div class="gain">${ptxt(c.g)}</div>`,then:n})});
   if(c.risk&&Math.random()*100<c.risk){const sev=r.fat>=85?pick([2,3,3]):pick([1,1,2]);const INJ={1:['打撲','足を強く打ってしまった'],2:['ねんざ','足首をひねってしまった'],3:['骨折','すねの骨にヒビが入ってしまった']}[sev];
     r.inj=sev;r.injName=INJ[0];r.mot=Math.max(0,r.mot-1);const k=pick(STATS)[0];addSt({[k]:-3});
@@ -2298,6 +2333,7 @@ function vTitle(){
    <button class="btn" data-a="go" data-v="gacha">稽古パートナー召集（ガチャ）<span class="stones num small" style="margin-left:6px">${G.stones}</span></button>
    <button class="btn" data-a="go" data-v="deck">デッキ編成（${G.deck.length}/6）</button>
    <button class="btn" data-a="go" data-v="cards">カード図鑑（${Object.keys(C).filter(id=>!C[id].hide&&id in G.col).length}/${Object.keys(C).filter(id=>!C[id].hide).length}）</button>
+   <button class="btn" data-a="go" data-v="combos">コンボ図鑑（${COMBOS.filter(c=>G.combos[c.id]).length}/${COMBOS.length}）</button>
    <button class="btn" data-a="go" data-v="kumite">組手モード（操作して戦う）</button>
    <button class="btn" data-a="go" data-v="pvp">2人対戦（1P vs 2P）</button>
    <button class="btn" data-a="go" data-v="roster">選手名鑑（${G.roster.length}人）</button>
@@ -2457,7 +2493,7 @@ function yearPlan(){const r=G.run;if(!r)return;clickS();
     if(t===TOTAL-1)items.push(['卒業式','#ffd84a']);
     rows.push(`<div style="display:grid;grid-template-columns:62px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);${t===r.t?'background:rgba(255,216,74,.08)':''}"><div><b class="num">${m}月</b><div class="small mute">小${g}${t===r.t?'・今月':''}</div></div><div style="display:flex;flex-wrap:wrap;gap:4px">${items.length?items.map(([x,c])=>`<span style="border:1px solid ${c};color:${c};border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;background:transparent">${x}</span>`).join(''):'<span class="small mute">ふだんの稽古</span>'}</div></div>`)}
   show({lines:[],title:'年間予定',html:`<div class="small mute">これから12か月の行事です。審査は、帯の条件をみたしているときだけ受けられます。</div><div>${rows.join('')}</div>`,choices:[{label:'とじる',fn:()=>{}}]})}
-function render(){app.innerHTML=({title:vTitle,select:vSelect,gacha:vGacha,deck:vDeck,main:vMain,reg:vReg,kumite:vKumite,roster:vRoster,pvp:vPvp,cards:vCards,slots:vSlots}[G.screen]||vTitle)()}
+function render(){app.innerHTML=({title:vTitle,select:vSelect,gacha:vGacha,deck:vDeck,main:vMain,reg:vReg,kumite:vKumite,roster:vRoster,pvp:vPvp,cards:vCards,slots:vSlots,combos:vCombos}[G.screen]||vTitle)()}
 
 /* ================= actions ================= */
 const A={
