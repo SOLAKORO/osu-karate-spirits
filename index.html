@@ -335,6 +335,19 @@ table.rates td:last-child{text-align:right;white-space:nowrap}
 @keyframes sopInZoom{from{opacity:0;transform:scale(1.7);filter:blur(10px)}to{opacity:1;transform:scale(1);filter:blur(0)}}
 @keyframes sopInIris{from{clip-path:circle(0% at 50% 55%)}to{clip-path:circle(150% at 50% 55%)}}
 @keyframes sopInGl{0%{transform:translateX(-5%);opacity:.4}30%{transform:translateX(4%);opacity:1}60%{transform:translateX(-2%);opacity:.6}100%{transform:none;opacity:1}}
+#sop .sop-solo,#sop .sop-duel{position:absolute;inset:0;display:none;z-index:9998;overflow:hidden;--h:8;background:radial-gradient(circle at 50% 58%,hsl(var(--h),95%,58%) 0,hsl(calc(var(--h) + 20),90%,34%) 55%,#140a2c 100%)}
+#sop .sop-solo.on,#sop .sop-duel.on{display:block}
+#sop .sop-solo::before,#sop .sop-duel::before{content:"";position:absolute;inset:-20%;background:repeating-conic-gradient(from 0deg at 50% 58%,rgba(255,255,255,0) 0 6deg,rgba(255,255,255,.2) 6deg 7.4deg);animation:sopspin 1s steps(5) infinite}
+#sop .sop-solo img{position:absolute;left:50%;bottom:24%;height:62%;transform:translateX(-50%);filter:drop-shadow(0 10px 0 rgba(0,0,0,.35));animation:sopsolo .3s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes sopsolo{from{transform:translateX(-50%) scale(.5) rotate(-8deg);opacity:.2}to{transform:translateX(-50%) scale(1) rotate(0);opacity:1}}
+#sop .sop-duel .f{position:absolute;bottom:26%;height:50%}
+#sop .sop-duel .f1{left:2%;animation:sopfL .28s cubic-bezier(.2,1.5,.4,1) both}
+#sop .sop-duel .f2{right:2%;transform:scaleX(-1);animation:sopfR .28s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes sopfL{from{translate:-40% 0;opacity:.3}to{translate:0 0;opacity:1}}
+@keyframes sopfR{from{translate:-40% 0;opacity:.3}to{translate:0 0;opacity:1}}
+#sop .sop-duel .f img{height:100%;display:block;filter:drop-shadow(0 8px 0 rgba(0,0,0,.35))}
+#sop .waza{position:absolute;left:0;right:0;top:calc(9% + env(safe-area-inset-top));text-align:center;z-index:3;font-family:"Zen Kaku Gothic New","Noto Sans JP",sans-serif;font-weight:900;font-size:clamp(34px,10.5vw,64px);letter-spacing:.06em;color:#ffe45a;-webkit-text-stroke:7px #3a0a14;paint-order:stroke fill;text-shadow:0 6px 0 #3a0a14;transform:rotate(-4deg);animation:sopwaza .32s cubic-bezier(.2,1.8,.4,1) both;white-space:nowrap}
+@keyframes sopwaza{from{transform:rotate(-4deg) scale(2.2);opacity:0}to{transform:rotate(-4deg) scale(1);opacity:1}}
 #sop .sop-mont{position:absolute;inset:0;display:none;z-index:9999;--h:8;background:linear-gradient(115deg,hsl(var(--h),88%,46%) 0 50%,hsl(calc(var(--h) + 55),88%,40%) 50% 100%);overflow:hidden}
 #sop .sop-mont.on{display:block}
 #sop .sop-mont::after{content:"";position:absolute;left:50%;top:-10%;width:6px;height:120%;background:#fff;transform:translateX(-50%) rotate(12deg);box-shadow:0 0 18px #fff}
@@ -368,9 +381,12 @@ table.rates td:last-child{text-align:right;white-space:nowrap}
 #sop .sop-slash.go{visibility:visible;animation:sopsl .42s cubic-bezier(.5,0,.2,1) both}
 @keyframes sopsl{0%{left:-10%;opacity:1}99%{left:110%;opacity:1}100%{left:110%;opacity:0}}
 /* 歌詞: すべて同じ大きさ・書体・色（TVアニメ方式） */
-#sop .sop-cap{position:absolute;left:0;right:0;bottom:calc(11% + env(safe-area-inset-bottom));text-align:center;padding:0 14px;pointer-events:none;z-index:8}
-#sop .sop-cap .m{display:inline-block;font-family:"Zen Kaku Gothic New","Noto Sans JP","Hiragino Sans",sans-serif;font-weight:900;font-size:clamp(21px,5.6vw,36px);line-height:1.55;color:#fff;-webkit-text-stroke:6px #1b1740;paint-order:stroke fill;letter-spacing:.07em;text-shadow:0 3px 12px rgba(0,0,0,.55);padding:0 .2em}
-#sop .sop-cap .m .rt{-webkit-text-stroke:3px #1b1740;font-weight:900;opacity:1}
+#sop .sop-capbg{position:absolute;left:0;right:0;bottom:0;height:30%;background:linear-gradient(transparent,rgba(8,6,24,.62));pointer-events:none;z-index:7;opacity:0;transition:opacity .25s}
+#sop .sop-capbg.on{opacity:1}
+#sop .sop-cap{position:absolute;left:0;right:0;bottom:calc(10% + env(safe-area-inset-bottom));text-align:center;padding:0 8px;pointer-events:none;z-index:8}
+#sop .sop-cap .m{display:inline-block;white-space:nowrap;font-family:"Zen Kaku Gothic New","Noto Sans JP","Hiragino Sans",sans-serif;font-weight:900;font-size:var(--cs,24px);line-height:1.6;color:#fff;-webkit-text-stroke:2.6px #14123a;paint-order:stroke fill;letter-spacing:.05em;text-shadow:0 2px 0 rgba(10,8,34,.9);padding:0 .1em}
+#sop .sop-cap .m.en{letter-spacing:0}
+#sop .sop-cap .m .rt{-webkit-text-stroke:2px #14123a;font-weight:900;opacity:1;text-shadow:0 1px 0 rgba(10,8,34,.9)}
 #sop .sop-cap .m.rv{animation:sopcap .3s cubic-bezier(.2,.8,.2,1) both}
 @keyframes sopcap{from{clip-path:inset(-1.2em 100% -1.2em -.3em);transform:translateY(10px)}to{clip-path:inset(-1.2em -.3em -1.2em -.3em);transform:none}}
 #sop .sop-logo{position:absolute;left:0;right:0;top:50%;transform:translateY(-52%);display:flex;justify-content:center;padding:0 16px;pointer-events:none;z-index:8}
@@ -1800,15 +1816,19 @@ const opSnap=t=>{const s=t<OP_SEG[1][0]?OP_SEG[0]:t<OP_SEG[2][0]?OP_SEG[1]:OP_SE
 function songOp(){return new Promise(async resolve=>{
   const pre=P(),prevBgm=wantBgm;
   const el=document.createElement('div');el.id='sop';
-  el.innerHTML=`<div class="sop-stage"><div class="sop-mont"><div class="mp m1"><img alt=""><b></b></div><div class="mp m2"><img alt=""><b></b></div></div></div><canvas class="sop-fx"></canvas><div class="sop-lines"></div><div class="sop-leak"></div><div class="sop-vig"></div><div class="sop-grain"></div><i class="sop-bar t"></i><i class="sop-bar b"></i><div class="sop-slash"></div><div class="sop-flash"></div><div class="sop-inv"></div><div class="sop-logo" hidden>${logoHTML()}</div><div class="sop-cap" hidden><span class="m"></span></div><div class="sop-black"></div><button class="sop-skip" type="button">スキップ ▶▶</button><div class="sop-hint">タップでスキップ</div>`;
+  el.innerHTML=`<div class="sop-stage"><div class="sop-mont"><div class="mp m1"><img alt=""><b></b></div><div class="mp m2"><img alt=""><b></b></div></div></div><canvas class="sop-fx"></canvas><div class="sop-solo"><img alt=""><div class="waza"></div></div><div class="sop-duel"><div class="f f1"><img alt=""></div><div class="f f2"><img alt=""></div><div class="waza"></div></div><div class="sop-lines"></div><div class="sop-leak"></div><div class="sop-vig"></div><div class="sop-grain"></div><i class="sop-bar t"></i><i class="sop-bar b"></i><div class="sop-slash"></div><div class="sop-flash"></div><div class="sop-inv"></div><div class="sop-logo" hidden>${logoHTML()}</div><div class="sop-capbg"></div><div class="sop-cap" hidden><span class="m"></span></div><div class="sop-black"></div><button class="sop-skip" type="button">スキップ ▶▶</button><div class="sop-hint">タップでスキップ</div>`;
   document.body.appendChild(el);
   try{bgm(null)}catch(e){}
   const q=s=>el.querySelector(s);
-  const stage=q('.sop-stage'),mont=q('.sop-mont'),fl=q('.sop-flash'),inv=q('.sop-inv'),slashEl=q('.sop-slash'),capEl=q('.sop-cap'),capM=q('.sop-cap .m'),lg=q('.sop-logo'),blk=q('.sop-black'),leak=q('.sop-leak'),cv=q('.sop-fx'),cx=cv.getContext('2d');
+  const solo=q('.sop-solo'),duel=q('.sop-duel'),capbg=q('.sop-capbg'),stage=q('.sop-stage'),mont=q('.sop-mont'),fl=q('.sop-flash'),inv=q('.sop-inv'),slashEl=q('.sop-slash'),capEl=q('.sop-cap'),capM=q('.sop-cap .m'),lg=q('.sop-logo'),blk=q('.sop-black'),leak=q('.sop-leak'),cv=q('.sop-fx'),cx=cv.getContext('2d');
   let done=false,a=null,useAudio=false,t0=0,raf=0,zc=1,W=0,H=0,DPR=1;
   const fit=()=>{DPR=Math.min(2,window.devicePixelRatio||1);W=el.clientWidth;H=el.clientHeight;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);cx.setTransform(DPR,0,0,DPR,0,0)};
-  fit();window.addEventListener('resize',fit);
-  const finish=()=>{if(done)return;done=true;cancelAnimationFrame(raf);window.removeEventListener('resize',fit);
+  const LYR=['Trembling hands, I hear the call','Beyond the door, beyond the wall','One day the world will hear it all','This is just the first step','Karate Spirits, never stop','涙の あとの 玄関で','小さな 拳 にぎりしめた','怖いけれど 嫌だけど','母の手が あったかかった','ドアを 開けたら ひびく声','セイッ ぼくも いきたい','震える ひざを 叩いて','ひとつ 息を 吸いこんだ','ぎゅっと 力を こめてみよう','いまが はじまりの 合図','押忍！ はじめの一歩','震える足で ふみだそう','空手スピリッツ','黒帯 つかむ その日まで','礼に はじまり 礼で おわる','その道の先に 待ってるのは','強くて 優しい 明日の きみ'];
+  let csPx=24;const fontFit=()=>{try{const c=document.createElement('canvas').getContext('2d');c.font='900 100px "Zen Kaku Gothic New","Noto Sans JP",sans-serif';let mx=0;
+      LYR.forEach(s=>{const en=/^[\x00-\x7f]+$/.test(s);const w=c.measureText(s).width/100+(en?0:.05)*s.length;mx=Math.max(mx,w)});
+      csPx=Math.max(13,Math.min(38,(W-20)/mx*.96));el.style.setProperty('--cs',csPx.toFixed(1)+'px')}catch(e){}};
+  fit();fontFit();window.addEventListener('resize',()=>{fit();fontFit()});
+  const finish=()=>{if(done)return;done=true;cancelAnimationFrame(raf);
     try{if(a){const v0=a.volume;let k=0;const iv=setInterval(()=>{k++;try{a.volume=Math.max(0,v0*(1-k/8))}catch(e){}if(k>=8){clearInterval(iv);try{a.pause()}catch(e){}}},40)}}catch(e){}
     el.style.transition='opacity .35s';el.style.opacity='0';setTimeout(()=>{el.remove();try{bgm(prevBgm||'title')}catch(e){}resolve()},360)};
   el.onclick=e=>{e.stopPropagation();finish()};
@@ -1830,7 +1850,7 @@ function songOp(){return new Promise(async resolve=>{
   const T=()=>useAudio?a.currentTime:(performance.now()-t0)/1000;
   // ---- 画面切りかえ
   const show=(url,fx,dur,tr)=>{if(!okSet.has(url))return;
-    mont.classList.remove('on');
+    mont.classList.remove('on');solo.classList.remove('on');duel.classList.remove('on');
     const L=document.createElement('div');L.className=`sop-img ${fx||'zi'} in-${tr||'fade'}`;L.style.zIndex=++zc;L.style.setProperty('--d',(dur||8)+'s');
     L.innerHTML=`<i style="background-image:url('${url}')"></i><img src="${url}" alt="">`;
     const old=[...stage.querySelectorAll('.sop-img')];
@@ -1840,8 +1860,10 @@ function songOp(){return new Promise(async resolve=>{
   const flash=()=>{fl.classList.remove('go');void fl.offsetWidth;fl.classList.add('go')};
   const impactFrame=()=>{inv.classList.remove('go');void inv.offsetWidth;inv.classList.add('go')};
   const r=(k,y)=>`<span class="rb">${k}<span class="rt">${y}</span></span>`;
-  const say=h=>{capEl.hidden=false;capM.innerHTML=h;capM.classList.remove('rv');void capM.offsetWidth;capM.classList.add('rv')};
-  const nosay=()=>{capEl.hidden=true};
+  const say=(h,en)=>{capEl.hidden=false;capbg.classList.add('on');capM.innerHTML=h;capM.classList.toggle('en',!!en);capM.classList.remove('rv');void capM.offsetWidth;
+    const ww=capM.getBoundingClientRect().width;if(ww>W-12&&ww>0){csPx=Math.max(11,csPx*(W-12)/ww);el.style.setProperty('--cs',csPx.toFixed(1)+'px')}
+    capM.classList.add('rv')};
+  const nosay=()=>{capEl.hidden=true;capbg.classList.remove('on')};
   const logo=(on,slam)=>{lg.hidden=!on;lg.classList.toggle('slam',!!slam);if(on){const L=lg.firstElementChild;L.style.animation='none';void L.offsetWidth;L.style.animation=''}};
   // ---- パーティクル
   const PT=[];let mode='none',rate=0,acc=0,shake=0,pulseAmp=0,leakA=0;
@@ -1872,14 +1894,28 @@ function songOp(){return new Promise(async resolve=>{
   const montStep=()=>{if(!montOn)return;let n=0;
     [[m1,0],[m2,1]].forEach(([box,off])=>{const id=STU[(mi+off)%STU.length];if(!okSet.has(PS_(id)))return;const im=box.querySelector('img');im.style.animation='none';void im.offsetWidth;im.style.animation='';im.src=PS_(id);box.querySelector('b').textContent=nameOf(id)||'';n++});
     mi+=2;hue=(hue+55)%360;mont.style.setProperty('--h',hue);if(n)mont.classList.add('on')};
-  const montStart=()=>{montOn=true;montStep()};const montEnd=()=>{montOn=false;mont.classList.remove('on')};
+  const montStart=()=>{solo.classList.remove('on');duel.classList.remove('on');montOn=true;montStep()};const montEnd=()=>{montOn=false;mont.classList.remove('on')};
+  // ---- 技の見せ場（主人公の技・対決）
+  const HP=n=>`assets/pose/${pre}-${n}.webp`,RP=n=>`assets/pose/sou-${n}.webp`;
+  const WZ={seiken:'正拳中段突き！',mae:'前蹴り！',jodan:'上段廻し蹴り！',hiza:'膝蹴り！'};
+  const wload=[HP('seiken'),HP('mae'),HP('jodan'),HP('kamae'),HP('osu'),HP('hiza'),HP('uke'),RP('idle'),RP('seiken'),RP('hit'),RP('jodan'),RP('mae')];
+  await Promise.race([Promise.all(wload.map(load)),sleep(2500)]);
+  let wh=8;
+  const wbg=p=>{wh=(wh+47)%360;p.style.setProperty('--h',wh)};
+  const waza=(pose,label)=>{if(!okSet.has(HP(pose)))return;montEnd();duel.classList.remove('on');solo.classList.add('on');wbg(solo);
+    const im=solo.querySelector('img');im.style.animation='none';void im.offsetWidth;im.style.animation='';im.src=HP(pose);
+    const w=solo.querySelector('.waza');w.textContent=label||'';w.style.animation='none';void w.offsetWidth;w.style.animation='';impact(false)};
+  const duelSet=(hp,rp,label)=>{if(!okSet.has(HP(hp))||!okSet.has(RP(rp)))return;montEnd();solo.classList.remove('on');duel.classList.add('on');wbg(duel);
+    [['.f1',HP(hp)],['.f2',RP(rp)]].forEach(([s,u])=>{const f=duel.querySelector(s);f.style.animation='none';void f.offsetWidth;f.style.animation='';f.querySelector('img').src=u});
+    const w=duel.querySelector('.waza');w.textContent=label||'';w.style.animation='none';void w.offsetWidth;w.style.animation='';impact(!!label)};
+  const wazaEnd=()=>{solo.classList.remove('on');duel.classList.remove('on')};
   // ---- タイムライン（秒）
   const cues=[];const at=(s,f)=>cues.push([opSnap(s-.1),f]);
   const bars=on=>el.classList.toggle('bars',on);
   at(0.05,()=>{show(U(1),'zi',12,'fade');blk.classList.add('out');mode='mote';rate=10});
-  at(10.1,()=>say('Trembling hands, I hear the call'));
-  at(13.8,()=>say('Beyond the door, beyond the wall'));
-  at(17.5,()=>say('One day the world will hear it all'));
+  at(10.1,()=>say('Trembling hands, I hear the call',1));
+  at(13.8,()=>say('Beyond the door, beyond the wall',1));
+  at(17.5,()=>say('One day the world will hear it all',1));
   at(21.3,()=>{nosay();flash();bars(true);show(U(2),'zi',8,'slash');mode='ember';rate=14;pulseAmp=.008});
   at(29.2,()=>{show(U(5),'pl',8,'zoom');rate=22;pulseAmp=.012});
   at(36.8,()=>{show(U(1),'zo',11,'fade');say(`${r('涙','なみだ')}の あとの ${r('玄関','げんかん')}で`);rate=18});
@@ -1894,15 +1930,20 @@ function songOp(){return new Promise(async resolve=>{
   at(58.9,()=>say(`いまが はじまりの ${r('合図','あいず')}`));
   at(60.6,()=>{el.classList.add('rise');rate=60;pulseAmp=.03});
   at(62.85,()=>{el.classList.remove('rise');el.classList.add('fast');bars(false);impact(true);show(U(7),'zi',4,'zoom');say(`${r('押忍','おす')}！ はじめの${r('一歩','いっぽ')}`);logo(true,true);rate=50;pulseAmp=.035});
-  at(65.5,()=>{logo(false);show(U(6),'pl',4,'slash');say(`${r('震','ふる')}える${r('足','あし')}で ふみだそう`);impact(false)});
+  at(65.5,()=>{logo(false);say(`${r('震','ふる')}える${r('足','あし')}で ふみだそう`);waza('seiken',WZ.seiken)});
+  at(66.6,()=>waza('mae',WZ.mae));
+  at(67.7,()=>waza('jodan',WZ.jodan));
   at(68.55,()=>{impact(true);say(`${r('空手','からて')}スピリッツ`);montStart()});
   at(70.1,()=>say(`${r('黒帯','くろおび')} つかむ その${r('日','ひ')}まで`));
-  at(73.3,()=>say(`${r('礼','れい')}に はじまり ${r('礼','れい')}で おわる`));
-  at(76.6,()=>{montEnd();impact(true);show(E(3),'zi',9,'iris');say(`その${r('道','みち')}の ${r('先','さき')}に ${r('待','ま')}ってるのは`)});
+  at(73.3,()=>{say(`${r('礼','れい')}に はじまり ${r('礼','れい')}で おわる`);duelSet('kamae','idle','')});
+  at(74.1,()=>duelSet('seiken','seiken','ガキン！'));
+  at(74.9,()=>duelSet('jodan','hit','上段廻し蹴り！'));
+  at(75.8,()=>duelSet('osu','idle','礼'));
+  at(76.6,()=>{wazaEnd();montEnd();impact(true);show(E(3),'zi',9,'iris');say(`その${r('道','みち')}の ${r('先','さき')}に ${r('待','ま')}ってるのは`)});
   at(82.8,()=>{say(`${r('強','つよ')}くて ${r('優','やさ')}しい ${r('明日','あした')}の きみ`);mode='petal';rate=26;impact(false)});
   at(86.5,()=>{el.classList.remove('fast');nosay();bars(true);show(E(2),'zi',6,'fade');mode='petal';rate=14;pulseAmp=.006});
-  at(90.96,()=>say('This is just the first step'));
-  at(94.86,()=>say('Karate Spirits, never stop'));
+  at(90.96,()=>say('This is just the first step',1));
+  at(94.86,()=>say('Karate Spirits, never stop',1));
   at(99.9,()=>{nosay();bars(false);impact(true);logo(true,true);mode='ember';rate=40;pulseAmp=.03});
   at(103.8,()=>{blk.classList.remove('out');blk.classList.add('in')});
   let ci=0,lastN=-1,lastT=T();
