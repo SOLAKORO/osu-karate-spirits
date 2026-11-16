@@ -1810,6 +1810,8 @@ function reveal(res,newIds){return new Promise(done=>{
 
 /* ================= song opening (主題歌「押忍！空手スピリッツ」に合わせたOP) =================
    audio/osu-op.mp3（約1分47秒・BPM168）に合わせて、絵・歌詞・演出を切りかえる。画面をタップでスキップ。 */
+/* 配信版(PUBLIC_BUILD=true)では、実在の場所の文字を出さず、外観の絵は実物に似せない版(pubフォルダ)を使う */
+const PUBLIC_BUILD=true;
 const OP_P=60/168.2,OP_SEG=[[0,.065],[86.4,-141.875],[98.96,-152.155]];
 function opBeat(t){const s=t<OP_SEG[1][0]?OP_SEG[0]:t<OP_SEG[2][0]?OP_SEG[1]:OP_SEG[2];const x=(t-s[1])/OP_P,n=Math.floor(x);return{n,ph:x-n,t:s[1]+n*OP_P,base:s[1]}}
 const opSnap=t=>{const s=t<OP_SEG[1][0]?OP_SEG[0]:t<OP_SEG[2][0]?OP_SEG[1]:OP_SEG[2];return s[1]+Math.round((t-s[1])/OP_P)*OP_P};
@@ -1988,7 +1990,7 @@ async function opening(){
   const W=ms=>skip?Promise.resolve():sleep(ms);
   const fig=(id,pose,ex)=>artSVG(ART[id],pose||'stand',ex||'smile','full');
   // 生成イラスト（assets/op/<kizuna|kokoro>-<1..9>.webp）があれば使い、なければ手描きの立ち絵で進める
-  const OPI={};await Promise.race([Promise.all([1,2,3,4,5,6,7,8,9,10].map(n=>new Promise(res=>{const im=new Image();im.onload=()=>{OPI[n]=im.src;res()};im.onerror=()=>res();im.src=`assets/op/${P()}-${n}.webp`}))),sleep(2500)]);
+  const OPI={};await Promise.race([Promise.all([1,2,3,4,5,6,7,8,9,10].map(n=>new Promise(res=>{const im=new Image();im.onload=()=>{OPI[n]=im.src;res()};im.onerror=()=>res();im.src=`assets/op/${PUBLIC_BUILD&&(n===3||n===4)?'pub/':''}${P()}-${n}.webp`}))),sleep(2500)]);
   let ill=$('.op-ill',op);if(!ill){ill=document.createElement('div');ill.className='op-ill';op.insertBefore(ill,$('.op-box',op))}
   const scene=n=>{if(OPI[n]){ill.innerHTML=`<img src="${OPI[n]}" alt="">`;op.classList.add('hasill')}else{ill.innerHTML='';op.classList.remove('hasill')}};
   const actors=list=>{st.innerHTML=list.map(a=>`<div class="act ${a.cls||''}" style="left:${a.x}%;height:${a.h||44}%;${a.flip?'--fx:-1;':''}" data-id="${a.id}">${a.img?`<img src="${a.img}" alt="">`:fig(a.id,a.pose,a.ex)}</div>`).join('')};
@@ -2010,7 +2012,7 @@ async function opening(){
   // scene 3: 空心道場（浦添市当山）へ
   scene(3);
   bg.className='op-bg alley';actors([{id:mama,x:40,h:56,pose:'stand'},{id:kid,x:24,h:34,pose:'stand',ex:'hurt',cls:'shake'}]);
-  await say(null,'浦添市当山。「空心道場」の看板が見えてきた。');
+  await say(null,PUBLIC_BUILD?'「空心道場」の看板が見えてきた。':'浦添市当山。「空心道場」の看板が見えてきた。');
   // scene 4: 師範との出会い
   scene(4);
   bg.className='op-bg gate';actors([{id:'kancho',x:56,h:58,pose:'osu',cls:'in-r'},{id:mama,x:20,h:56,pose:'stand'},{id:kid,x:36,h:34,pose:'stand',ex:'hurt',cls:'hide'}]);
@@ -2442,7 +2444,7 @@ async function ending(){
   const bg=$('.op-bg',op),box=$('.op-box',op),ttl=$('.op-title',op);
   $('.op-skip',op).onclick=e=>{e.stopPropagation();skip=true;tapR&&tapR()};op.onclick=()=>{tapR&&tapR()};
   const wait=()=>new Promise(res=>{if(skip)return res();tapR=()=>{tapR=null;res()}});
-  const EDI={};const loadEd=n=>new Promise(res=>{const get=(u,ok,ng)=>{const im=new Image();im.onload=()=>ok(im.src);im.onerror=ng;im.src=u};const common=()=>get(`assets/ed/${n}.webp`,u=>{EDI[n]=u;res()},()=>res());boy?common():get(`assets/ed/${n}-g.webp`,u=>{EDI[n]=u;res()},common)});
+  const EDI={};const loadEd=n=>new Promise(res=>{const get=(u,ok,ng)=>{const im=new Image();im.onload=()=>ok(im.src);im.onerror=ng;im.src=u};const dir=PUBLIC_BUILD&&n===5?'assets/ed/pub/':'assets/ed/';const common=()=>get(`${dir}${n}.webp`,u=>{EDI[n]=u;res()},()=>res());boy?common():get(`${dir}${n}-g.webp`,u=>{EDI[n]=u;res()},common)});
   await Promise.race([Promise.all([1,2,3,4,5,6].map(loadEd)),sleep(2500)]);
   let ill=$('.op-ill',op);if(!ill){ill=document.createElement('div');ill.className='op-ill';op.insertBefore(ill,$('.op-box',op))}
   const scene=n=>{if(EDI[n]){ill.innerHTML=`<img src="${EDI[n]}" alt="">`;op.classList.add('hasill')}else{ill.innerHTML='';op.classList.remove('hasill')}};
