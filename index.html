@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body><meta charset="utf-8">
+<meta charset="utf-8">
 <title>押忍！空手スピリッツ</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1994,7 +1994,7 @@ async function opening(){
   const OPI={};await Promise.race([Promise.all([1,2,3,4,5,6,7,8,9,10].map(n=>new Promise(res=>{const im=new Image();im.onload=()=>{OPI[n]=im.src;res()};im.onerror=()=>res();im.src=`assets/op/${PUBLIC_BUILD&&(n===3||n===4)?'pub/':''}${P()}-${n}.webp`}))),sleep(2500)]);
   let ill=$('.op-ill',op);if(!ill){ill=document.createElement('div');ill.className='op-ill';op.insertBefore(ill,$('.op-box',op))}
   // 動画にした場面の番号（assets/op/<kizuna|kokoro>-<n>.mp4）。読めないときは自動で静止画にもどる
-  const OPV=new Set(({kizuna:[1,6,8,10],kokoro:[1,6,8,10]})[P()]||[]);
+  const OPV=new Set(({kizuna:[1,2,5,6,8,10],kokoro:[1,2,5,6,8,10]})[P()]||[]);
   const scene=n=>{if(OPI[n]){const still=`<img src="${OPI[n]}" alt="">`;ill.innerHTML=OPV.has(n)?`<video src="assets/op/${PUBLIC_BUILD&&(n===3||n===4)?'pub/':''}${P()}-${n}.mp4" poster="${OPI[n]}" autoplay muted loop playsinline></video>`:still;const v=$('video',ill);if(v)v.onerror=()=>{ill.innerHTML=still};op.classList.add('hasill')}else{ill.innerHTML='';op.classList.remove('hasill')}};
   const actors=list=>{st.innerHTML=list.map(a=>`<div class="act ${a.cls||''}" style="left:${a.x}%;height:${a.h||44}%;${a.flip?'--fx:-1;':''}" data-id="${a.id}">${a.img?`<img src="${a.img}" alt="">`:fig(a.id,a.pose,a.ex)}</div>`).join('')};
   const say=async(who,t)=>{if(skip)return;box.hidden=false;$('.np',box).textContent=who?nameOf(who):'';$('.np',box).classList.toggle('none',!who);voiceLine(who,t);
@@ -2861,4 +2861,3 @@ window.claude?.hot?.ready?window.claude.hot.ready(boot):boot(window.claude?.hot?
 
 })();
 </script>
-</body></html>
