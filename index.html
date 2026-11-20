@@ -314,6 +314,7 @@ table.rates td:last-child{text-align:right;white-space:nowrap}
 #sop .sop-img{position:absolute;inset:0;overflow:hidden}
 #sop .sop-img i{position:absolute;inset:-6%;background-size:cover;background-position:center;filter:blur(18px) brightness(.55)}
 #sop .sop-img img{position:absolute;left:50%;top:0;height:100%;max-width:none;transform:translateX(-50%);object-fit:contain;animation-duration:var(--d,8s);animation-timing-function:ease-out;animation-fill-mode:both}
+#sop .sop-img video{position:absolute;left:50%;top:0;height:100%;max-width:none;transform:translateX(-50%)}
 #sop .sop-img.zi img{animation-name:sopzi}#sop .sop-img.zo img{animation-name:sopzo}#sop .sop-img.pl img{animation-name:soppl}#sop .sop-img.pr img{animation-name:soppr}#sop .sop-img.up img{animation-name:sopup}#sop .sop-img.tl img{animation-name:soptl}
 @keyframes sopzi{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.2)}}
 @keyframes sopzo{from{transform:translateX(-50%) scale(1.22)}to{transform:translateX(-50%) scale(1)}}
@@ -1842,7 +1843,8 @@ function songOp(){return new Promise(async resolve=>{
   const load=u=>new Promise(res=>{const im=new Image();im.onload=()=>{okSet.add(u);res()};im.onerror=()=>res();im.src=u});
   const imgs=[U(1),U(2),U(5),U(6),U(7),U(8),U(10),E(2),E(3),...STU.map(PS_)];
   const audioReady=new Promise(res=>{try{a=new Audio('audio/osu-op.mp3');a.preload='auto';a.setAttribute('playsinline','');a.oncanplaythrough=()=>res(true);a.onerror=()=>res(false);a.load()}catch(e){res(false)}});
-  await Promise.race([Promise.all([audioReady,...imgs.map(load)]),sleep(6000)]);
+  const SOPVN=[2,5];const vOk=new Set();const loadV=n=>new Promise(res=>{try{const v=document.createElement('video');v.muted=true;v.preload='auto';v.playsInline=true;v.onloadeddata=()=>{vOk.add(U(n));res()};v.onerror=()=>res();v.src=`assets/op/${pre}-${n}.mp4`;v.load()}catch(e){res()}});
+  await Promise.race([Promise.all([audioReady,...imgs.map(load),...SOPVN.map(loadV)]),sleep(6000)]);
   if(done)return;
   if(G.snd&&a){
     try{const c=ac();if(c){try{a._src=c.createMediaElementSource(a);a._src.connect(MUSIC);a.volume=1}catch(e){a.volume=volBGM()}}else a.volume=volBGM();
@@ -1855,7 +1857,7 @@ function songOp(){return new Promise(async resolve=>{
   const show=(url,fx,dur,tr)=>{if(!okSet.has(url))return;
     mont.classList.remove('on');solo.classList.remove('on');duel.classList.remove('on');
     const L=document.createElement('div');L.className=`sop-img ${fx||'zi'} in-${tr||'fade'}`;L.style.zIndex=++zc;L.style.setProperty('--d',(dur||8)+'s');
-    L.innerHTML=`<i style="background-image:url('${url}')"></i><img src="${url}" alt="">`;
+    L.innerHTML=`<i style="background-image:url('${url}')"></i>`+(vOk.has(url)?`<video src="${url.replace(/\.webp$/,'.mp4')}" muted loop playsinline autoplay></video>`:`<img src="${url}" alt="">`);if(vOk.has(url)){L.classList.add('vid');const v=L.querySelector('video');v.muted=true;v.onerror=()=>{v.outerHTML=`<img src="${url}" alt="">`};const pp=v.play();if(pp&&pp.catch)pp.catch(()=>{})}
     const old=[...stage.querySelectorAll('.sop-img')];
     stage.insertBefore(L,mont);
     if(tr==='slash'){slashEl.classList.remove('go');void slashEl.offsetWidth;slashEl.classList.add('go');setTimeout(()=>slashEl.classList.remove('go'),650)}
