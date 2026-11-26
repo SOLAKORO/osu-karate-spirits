@@ -1543,7 +1543,7 @@ function fresh(){return {screen:'title',stones:5000,col:{kokoro:0,kizuna:0},slot
    so republishing the page or opening it in another browser never loses progress. */
 const LEGACY=['kumite-densetsu-v2'];
 /* セーブの移行: 凸→☆。道場生は☆、館長たちは固定の仲間。主人公の見た目変更は廃止 */
-function migrate(g){if(!g)return g;g.col=g.col||{};g.dup=g.dup||{};
+function migrate(g){if(!g)return g;g.col=g.col||{};g.dup=g.dup||{};g.unlocked=g.unlocked||{};
   if((g.ver||1)<2){const FL={N:0,R:2,SR:4,SSR:6};for(const id of Object.keys(g.col)){if(!C[id])continue;if(GSET.has(id))g.col[id]=Math.max(Math.min(STAR_MAX,g.col[id]||0),FL[C[id].r0]||0);else g.col[id]=0}g.ver=2}
   for(const id of FIXEDSET)if(g.col[id]===undefined)g.col[id]=0;
   if(g.regTotal===undefined){g.regTotal=(g.roster||[]).length;let b=0;for(let n=1;n<=g.regTotal;n++)b+=regBonus(n);if(b>0){g.stones=(g.stones||0)+b;g.bonusNote={n:g.regTotal,b}}}
@@ -2703,6 +2703,7 @@ function vTitle(){
    <button class="btn" data-a="go" data-v="cards">カード図鑑（${Object.keys(C).filter(id=>!C[id].hide&&id in G.col).length}/${Object.keys(C).filter(id=>!C[id].hide).length}）</button>
    <button class="btn" data-a="go" data-v="combos">コンボ図鑑（${COMBOS.filter(c=>G.combos[c.id]).length}/${COMBOS.length}）</button>
    <button class="btn" data-a="go" data-v="kumite">組手モード（操作して戦う）</button>
+   <button class="btn main" data-a="go" data-v="arcade">ひとりで対戦（アーケード）<span class="small" style="margin-left:8px;font-family:var(--body)">勝つとキャラが増える</span></button>
    <button class="btn" data-a="go" data-v="pvp">2人対戦（1P vs 2P）</button>
    <button class="btn" data-a="go" data-v="roster">選手名鑑（${G.roster.length}人）</button>
   </div>
@@ -2802,7 +2803,7 @@ function vKumite(){const ops=Object.keys(G.col).filter(id=>C[id].t!=='sup'&&id!=
 
 /* ================= 2人対戦（同じ画面で1P vs 2P） ================= */
 const PV={a:'kizuna',b:'kokoro',pw:70,land:1};
-function pvIds(){return Object.keys(C).filter(id=>!C[id].hide&&ART[id]&&C[id].n&&(GSET.has(id)||id==='kizuna'||id==='kokoro'))}
+function pvIds(){return Object.keys(C).filter(id=>!C[id].hide&&ART[id]&&C[id].n&&(id==='kizuna'||id==='kokoro'||(G.unlocked&&G.unlocked[id])))}
 const pvR=v=>/^r\d+$/.test(v)?G.roster[+v.slice(1)]:null;
 function pvList(){return [...G.roster.map((f,i)=>'r'+i),...pvIds()]}
 const pvName=v=>{const f=pvR(v);return f?f.name:(C[v]?C[v].n:v)};
@@ -2810,7 +2811,7 @@ function pvFace(v,s){const f=pvR(v);if(!f)return av(v,s);const k=f.look&&f.look!
 function pvFighter(v,pw,oth){const f=pvR(v);
   if(f){const d=myFighter(f);if(pw>0)STATS.forEach(([k])=>d.st[k]=pw);return d}
   let p=pw;if(p<=0){const o=pvR(oth);p=o?Math.round(power(o.st,o.skills)*.9):70}
-  const d=oppFighter(v,p);STATS.forEach(([k])=>d.st[k]=p);return d}
+  const d=oppFighter(v,p);STATS.forEach(([k])=>d.st[k]=p);return charBias(d,v)}
 function vPvp(){const ids=pvList();if(!ids.includes(PV.a))PV.a=ids[0];if(!ids.includes(PV.b)||PV.b===PV.a)PV.b=ids.find(x=>x!==PV.a)||ids[0];
   const chip=(side,id)=>`<button class="pvc${PV[side]===id?' sel':''}" data-a="pv${side}" data-v="${id}">${pvFace(id,40)}<span>${pvName(id)}${pvR(id)?'（育成）':''}</span></button>`;
   return `<div class="hud"><button class="btn sm" data-a="go" data-v="title">← もどる</button><h2 style="font-size:20px">2人対戦</h2></div>
@@ -2825,6 +2826,43 @@ function pvGo(){const a=pvFighter(PV.a,PV.pw,PV.b),b=pvFighter(PV.b,PV.pw,PV.a);
     onEnd:(win,how)=>{if(!how){G.screen='pvp';render();return}
       show({lines:[],title:`${win?'1P':'2P'}の勝ち！（${how}）`,html:`<div class="small mute">${win?a.name:b.name} の勝利。礼をして、もう一度やってみよう。</div>`,
         choices:[{label:'もう一度',fn:()=>setTimeout(pvGo,30)},{label:'メニューへ',fn:()=>{G.screen='pvp';render()}}]})}})}
+
+/* ================= アーケード（ひとりで対戦: 勝った相手が使えるキャラになる） ================= */
+const ARC_STAGES=['rino','swan','shunshun','rami','rana','atsushi','ryoto','ryusei','kuroda','kaito','saaya','akari','raito','akihito','kaita','gaoto','bashin','oshiro','taisei','hinata','kirato','kanata','nijito','maho','makita','kancho'];
+const ARC_BOSS={kuroda:'第1ブロックのボス',oshiro:'第2ブロックのボス',kancho:'最終ボス'};
+const ARC={sel:'kizuna',diff:1,stage:0,cont:3,on:false,list:[]};
+const ARC_DIFF=['やさしい','ふつう','つよい'];
+const CT2P={go:'pow',tai:'pow',soku:'spd',ju:'tec',shin:'mnd'};
+function charBias(d,id){const c=C[id],ty=c&&CT2P[c.t];if(!ty)return d;const ks=PTYPES[ty].ks;STATS.forEach(([k])=>{d.st[k]=clamp(d.st[k]+(ks.includes(k)?14:-5),5,120)});return d}
+const arcUnlocked=()=>['kizuna','kokoro',...Object.keys(G.unlocked||{}).filter(id=>C[id]&&id!=='kizuna'&&id!=='kokoro')];
+const arcList=()=>[...G.roster.map((f,i)=>'r'+i),...arcUnlocked()];
+function vArcade(){const ids=arcList();if(!ids.includes(ARC.sel))ARC.sel=ids[0];
+  const un=id=>!!(G.unlocked&&G.unlocked[id]),n=ARC_STAGES.filter(un).length;
+  const chip=id=>`<button class="pvc${ARC.sel===id?' sel':''}" data-a="arcsel" data-v="${id}">${pvFace(id,40)}<span>${pvName(id)}${pvR(id)?'（育成）':''}</span></button>`;
+  return `<div class="hud"><button class="btn sm" data-a="go" data-v="title">← もどる</button><h2 style="font-size:20px">ひとりで対戦（アーケード）</h2></div>
+  <div class="panel small">道場のみんなと、順番に戦います。ブロックの最後には<b>ボス</b>がいます。勝った相手は<b>使えるキャラ</b>になって、2人対戦でも選べます。負けても${3}回までコンティニューできます。<br>解放した相手：<b class="gain">${n}</b> / ${ARC_STAGES.length}${G.arcClears?`　全ステージクリア ${G.arcClears}回`:''}</div>
+  <div class="panel"><b>つかうキャラ</b>：${pvName(ARC.sel)}<div class="pvg">${ids.map(chip).join('')}</div></div>
+  <div class="panel small">むずかしさ：${ARC_DIFF.map((nm,i)=>`<button class="btn sm${ARC.diff===i?' main':''}" data-a="arcdiff" data-v="${i}">${nm}</button>`).join(' ')}</div>
+  <div class="panel small"><div class="label" style="margin-bottom:4px">対戦相手（勝つと使える）</div>${ARC_STAGES.map(id=>`<span style="opacity:${un(id)?1:.45}">${un(id)?'✓':''}${C[id].n}${ARC_BOSS[id]?'★':''}</span>`).join('　')}</div>
+  <div class="menu"><button class="btn main" data-a="arcgo">アーケードスタート！</button></div>`}
+function arcStart(){ARC.stage=0;ARC.cont=3;ARC.on=true;ARC.list=ARC_STAGES.filter(id=>id!==ARC.sel);arcIntro()}
+function arcIntro(){const id=ARC.list[ARC.stage],boss=ARC_BOSS[id],n=ARC.list.length,have=G.unlocked&&G.unlocked[id];
+  show({lines:[],who:id,sub:C[id].cat,title:`${ARC.stage+1}戦目 / ${n}${boss?'　'+boss:''}`,
+    html:`<div class="small mute">${boss?'ボスです。気をつけて！<br>':''}勝つと「${C[id].n}」を使えるようになります${have?'（解放ずみ）':''}。</div>`,
+    choices:[{label:'対戦スタート！',fn:()=>setTimeout(arcFight,30)},{label:'ここでやめる',fn:()=>{ARC.on=false}}]})}
+function arcFight(){const id=ARC.list[ARC.stage],s=ARC.stage,n=ARC.list.length,boss=!!ARC_BOSS[id];
+  const sp=pvR(ARC.sel);const a=sp?myFighter(sp):pvFighter(ARC.sel,65,null);
+  const pw=Math.round((26+s*2.1)*[.85,1,1.2][ARC.diff]*(boss?1.08:1));const b=pvFighter(id,pw,null);
+  b.lvl=clamp(.42+s*.018+[-.08,0,.06][ARC.diff]+(boss?.05:0),.4,.92);
+  fightRT({me:a,en:b,title:`アーケード ${s+1}/${n}　${a.name} vs ${b.name}`,bg:'local',onEnd:(win,how)=>{if(!how){ARC.on=false;render();return}win?arcWin(id):arcLose(id)}})}
+function arcWin(id){G.unlocked=G.unlocked||{};const first=!G.unlocked[id];G.unlocked[id]=1;ARC.stage++;save();
+  if(ARC.stage>=ARC.list.length){G.arcClears=(G.arcClears||0)+1;save();fanfareS();
+    show({lines:[],title:'アーケード クリア！',html:`<div class="small">全${ARC.list.length}人に勝ちました！ おめでとう！<br>解放したキャラ：${arcUnlocked().length-2}人</div>${first?`<div class="gain">「${C[id].n}」が使えるようになった！</div>`:''}`,choices:[{label:'もう一度あそぶ',fn:()=>setTimeout(arcStart,30)},{label:'メニューへ',fn:()=>{ARC.on=false}}]});return}
+  show({lines:[],who:id,sub:C[id].cat,title:'勝利！',html:first?`<div class="gain">「${C[id].n}」が使えるようになった！</div><div class="small mute">2人対戦や、次のアーケードで選べます。</div>`:'<div class="small mute">解放ずみのキャラです。</div>',
+    choices:[{label:`${ARC.stage+1}戦目へ`,fn:()=>setTimeout(arcIntro,30)},{label:'ここでやめる',fn:()=>{ARC.on=false}}]})}
+function arcLose(id){ARC.cont--;
+  if(ARC.cont<0){show({lines:[],title:'ゲームオーバー',html:`<div class="small mute">${ARC.stage+1}戦目で負けました。コンティニューを使い切りました。</div>`,choices:[{label:'最初からやりなおす',fn:()=>setTimeout(arcStart,30)},{label:'メニューへ',fn:()=>{ARC.on=false}}]});return}
+  show({lines:[],who:id,sub:C[id].cat,title:'負けた…',html:`<div class="small mute">コンティニュー 残り <b class="gain">${ARC.cont+1}</b> 回。同じ相手にもう一度挑戦できます。</div>`,choices:[{label:'もう一度戦う',fn:()=>setTimeout(arcFight,30)},{label:'ここでやめる',fn:()=>{ARC.on=false}}]})}
 
 /* ================= カード図鑑（集めたカードの情報・育成で覚えられる技） ================= */
 function cardList(){return Object.keys(C).filter(id=>!C[id].hide).sort((a,b)=>(RORD.indexOf(C[a].r)-RORD.indexOf(C[b].r)))}
@@ -2861,7 +2899,7 @@ function yearPlan(){const r=G.run;if(!r)return;clickS();
     if(t===TOTAL-1)items.push(['卒業式','#ffd84a']);
     rows.push(`<div style="display:grid;grid-template-columns:62px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);${t===r.t?'background:rgba(255,216,74,.08)':''}"><div><b class="num">${m}月</b><div class="small mute">小${g}${t===r.t?'・今月':''}</div></div><div style="display:flex;flex-wrap:wrap;gap:4px">${items.length?items.map(([x,c])=>`<span style="border:1px solid ${c};color:${c};border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;background:transparent">${x}</span>`).join(''):'<span class="small mute">ふだんの稽古</span>'}</div></div>`)}
   show({lines:[],title:'年間予定',html:`<div class="small mute">これから12か月の行事です。審査は、帯の条件をみたしているときだけ受けられます。</div><div>${rows.join('')}</div>`,choices:[{label:'とじる',fn:()=>{}}]})}
-function render(){app.innerHTML=({title:vTitle,select:vSelect,gacha:vGacha,deck:vDeck,main:vMain,reg:vReg,kumite:vKumite,roster:vRoster,pvp:vPvp,cards:vCards,slots:vSlots,combos:vCombos}[G.screen]||vTitle)()}
+function render(){app.innerHTML=({title:vTitle,select:vSelect,gacha:vGacha,deck:vDeck,main:vMain,reg:vReg,kumite:vKumite,roster:vRoster,pvp:vPvp,arcade:vArcade,cards:vCards,slots:vSlots,combos:vCombos}[G.screen]||vTitle)()}
 
 /* ================= actions ================= */
 const A={
@@ -2889,6 +2927,7 @@ const A={
   pva:v=>{PV.a=v;render()},pvb:v=>{PV.b=v;render()},pvw:v=>{PV.pw=+v;render()},pvgo:()=>pvGo(),
   cardv:id=>cardDetail(id),cal:()=>yearPlan(),
   bnote:()=>{G.bonusNote=null;save();render()},
+  arcsel:v=>{ARC.sel=v;render()},arcdiff:v=>{ARC.diff=+v;render()},arcgo:()=>arcStart(),
   rview:i=>rosterView(+i),
   rfight:i=>{G.kfighter=+i;G.screen='kumite';save();render()},
   rlook:v=>{const nm=$('#rnm');if(nm)G.me.name=nm.value.trim()||G.me.name;G.me.look=v;save();render()},
