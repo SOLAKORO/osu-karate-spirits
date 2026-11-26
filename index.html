@@ -64,6 +64,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;l
 .stones{display:inline-flex;align-items:center;gap:6px;font-weight:700}
 .stones::before{content:"";width:12px;height:12px;border-radius:2px;background:var(--gold);transform:rotate(45deg)}
 .topbar{display:flex;justify-content:flex-end;gap:8px}
+.menu .btn{white-space:normal;text-align:center;line-height:1.35}
 
 /* avatars & cards */
 .av{--s:34px;width:var(--s);height:var(--s);border-radius:50%;display:inline-block;flex:none;border:2px solid rgba(0,0,0,.35);position:relative;overflow:hidden}
@@ -2723,9 +2724,8 @@ function vTitle(){
    <button class="btn" data-a="go" data-v="pvp">2人対戦（1P vs 2P）</button>
    <button class="btn" data-a="go" data-v="roster">選手名鑑（${G.roster.length}人）</button>
    <button class="btn" data-a="help">遊び方</button>
-   <button class="btn" data-a="xfer">セーブの引き継ぎ（コード）</button>
-  </div>
-  <div class="panel small mute">ガチャの石はすべてゲーム内の無料ポイントです。育成を1回終えると1000、登録した選手が3人・5人・10人（以降10人ごと）になると、お祝いでたくさんもらえます。定期イベントでも、もらえます。<br>声：VOICEVOX:玄野武宏、白上虎太郎、春日部つむぎ</div>`;
+   <button class="btn" data-a="xfer">セーブの引き継ぎ</button>
+  </div>`;
 }
 function vSelect(){
   const owned=Object.keys(G.col).filter(id=>id!==P()&&id!==PART()&&!ART[id].cat).sort((a,b)=>RORD.indexOf(C[a].r)-RORD.indexOf(C[b].r));
@@ -2891,7 +2891,7 @@ const HELP=[
  {t:'ポイントと才能の器',h:`<div class="small">・稽古で、<b>体・技・心</b>のポイントがたまります。<b>能力アップ</b>で、好きな能力に振り分けます。<br>・能力の合計には<b>才能の器</b>（上限）があります。<b>全部は伸ばせない</b>ので、どこを伸ばすかが大事です。<br>・伸ばし方で、選手の<b>タイプ</b>が決まります。<br>　<b>パワー型</b>：重い技で押し切る<br>　<b>スピード型</b>：素早く先手を取る<br>　<b>技型</b>：必殺技のゲージがたまりやすい<br>　<b>心型</b>：「さばき」が得意<br>　<b>バランス型</b>：弱点が少ない<br>・特化した選手ほど、総合評価の<b>S</b>をねらえます。</div>`},
  {t:'仲間とガチャ',h:`<div class="small">・<b>ガチャ</b>では、道場のみんな（道場生）が出ます。同じ子がまた出ると<b>★が増えて</b>、N→R→SR→SSRと成長します（★6でMAX）。★MAXの子がまた出たら、自動で売却して石になります。<br>・<b>館長・師範代・他流派・伝説の空手家など</b>は、ガチャには出ない「固定の仲間」です。育成が進んだり、大会で活躍したり、<b>月ごとのイベント</b>をクリアしたりすると、少しずつ仲間になります。<br>・仲間と同じ稽古で、絆が<b>80以上</b>になると「<b>友情稽古</b>」が発動して、大きく伸びます。<br>・技の<b>コツ</b>を教えてくれるのは、<b>SR以上</b>の仲間だけです。</div>`},
  {t:'組手（くみて）のやり方',h:`<div class="small">・<b>◀▶</b>で前後に動きます。技のボタンで攻撃します。<br>・<b>上段ガード・下段ガード</b>は、押し続けます。相手の技の高さ（上段・中段・下段）に合わせましょう。<br>・<b>さばき</b>は、相手の技が当たる<b>直前</b>に押します。成功すると、相手が「ぴよぴよ」になります。外すとスキができます。<br>・ぴよぴよ中に<b>上段</b>の技が当たると<b>技あり</b>。<b>必殺技</b>なら<b>一本</b>です。<br>・時間切れは、<b>技あり</b>の数、つぎに<b>体力</b>で勝ち負けが決まります。</div>`},
- {t:'ひとりで対戦・石・引き継ぎ',h:`<div class="small">・<b>ひとりで対戦（アーケード）</b>：道場のみんなと順番に戦います。勝った相手は<b>使えるキャラ</b>になって、2人対戦でも選べます。<br>・ガチャの<b>石</b>は、育成を終えると1000、登録した選手が3人・5人・10人…になるとお祝いでたくさん、定期イベントでももらえます。<br>・<b>大切</b>：このゲームのデータは、この<b>ブラウザの中</b>にあります。ブラウザのデータを消すと、育てた選手も消えます。トップの「<b>セーブの引き継ぎ</b>」で<b>コード</b>を作って、メモやメッセージに保存しておくと安心です。機種を変えるときも、このコードで引き継げます。</div>`},
+ {t:'ひとりで対戦・石・引き継ぎ',h:`<div class="small">・<b>ひとりで対戦（アーケード）</b>：道場のみんなと順番に戦います。勝った相手は<b>使えるキャラ</b>になって、2人対戦でも選べます。<br>・ガチャの<b>石</b>は、育成を終えると1000、登録した選手が3人・5人・10人…になるとお祝いでたくさん、定期イベントでももらえます。<br>・<b>大切</b>：このゲームのデータは、この<b>ブラウザの中</b>にあります。ブラウザのデータを消すと、育てた選手も消えます。トップの「<b>セーブの引き継ぎ</b>」で<b>コード</b>を作って、メモやメッセージに保存しておくと安心です。機種を変えるときも、このコードで引き継げます。</div><div class="small mute" style="margin-top:8px">声：VOICEVOX:玄野武宏、白上虎太郎、春日部つむぎ</div>`},
 ];
 function helpShow(i){i=Math.max(0,Math.min(HELP.length-1,i||0));const p=HELP[i];G.seenHelp=true;
   show({lines:[],title:`遊び方 ${i+1}/${HELP.length}　${p.t}`,html:p.h,
