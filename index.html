@@ -1220,7 +1220,7 @@ function stepF(f,o){
  f.x=Math.max(40,Math.min(560,f.x));f.z=Math.max(-1,Math.min(1,f.z));
 }
 function startParry(f){if(!canAct(f)||f.sta<4)return false;f.sta-=4;f.state='parry';f.t=0;whoosh();return true}
-function doParry(a,b){a.state='stun';a.t=0;a.stunT=44+(b.pt==='mnd'?16:0);a.trail=[];a.hitN=99;if(a.isMe)BT.want=null;else if(BT.o.pvp)BT.want2=null;
+function doParry(a,b){if(b.isMe&&!(BT.o&&BT.o.pvp))evAdd('parry');a.state='stun';a.t=0;a.stunT=44+(b.pt==='mnd'?16:0);a.trail=[];a.hitN=99;if(a.isMe)BT.want=null;else if(BT.o.pvp)BT.want2=null;
  b.state='idle';b.t=0;b.ki=Math.min(100,b.ki+12);b.sta=Math.min(b.staMax,b.sta+14);
  spark(b.x+b.face*16,fy(b)-60,'#7fd3ff',1);BT.hitstop=9;BT.zoom=1.1;BT.shake=4;chime();pop('さばき！',b.x,fy(b)-150,'#7fd3ff',34);pop('ぴよぴよ…',a.x,fy(a)-170,'#ffd84a',22)}
 function playerIn(f,sel){const two=sel===2,k=two?BT.keys2:BT.keys,p=two?BT.pk2:BT.pk,K=n=>k[n]||p[n];
@@ -1453,6 +1453,7 @@ const TYPE_N={...Object.fromEntries(TK.map(k=>[k,TYPES[k].n])),sup:'援'};
 const GACHA_IDS=['makita','maho','nijito','kanata','kirato','hinata','taisei','bashin','gaoto','kaita','akihito','raito','akari','saaya','kaito','ryusei','ryoto','atsushi','rana','rami','rino','swan','shunshun'];
 const GSET=new Set(GACHA_IDS),isGacha=id=>GSET.has(id);
 const FIXEDSET=new Set(Object.keys(C).filter(id=>!GSET.has(id)&&!C[id].hide));
+const FIXED_START=['kizuna','kokoro','kancho','oshiro','higa','sakura','nana','hachi'];
 const regBonus=n=>n===3?3000:n===5?5000:(n>=10&&n%10===0)?10000:0;
 const STAR_MAX=6,STAR_NEED=[1,1,1,2,2,2],SELL=60;
 const starRar=s=>s>=6?'SSR':s>=4?'SR':s>=2?'R':'N';
@@ -1545,7 +1546,8 @@ const LEGACY=['kumite-densetsu-v2'];
 /* セーブの移行: 凸→☆。道場生は☆、館長たちは固定の仲間。主人公の見た目変更は廃止 */
 function migrate(g){if(!g)return g;g.col=g.col||{};g.dup=g.dup||{};g.unlocked=g.unlocked||{};
   if((g.ver||1)<2){const FL={N:0,R:2,SR:4,SSR:6};for(const id of Object.keys(g.col)){if(!C[id])continue;if(GSET.has(id))g.col[id]=Math.max(Math.min(STAR_MAX,g.col[id]||0),FL[C[id].r0]||0);else g.col[id]=0}g.ver=2}
-  for(const id of FIXEDSET)if(g.col[id]===undefined)g.col[id]=0;
+  for(const id of FIXED_START)if(C[id]&&g.col[id]===undefined)g.col[id]=0;
+  g.evp=g.evp||{};
   if(g.regTotal===undefined){g.regTotal=(g.roster||[]).length;let b=0;for(let n=1;n<=g.regTotal;n++)b+=regBonus(n);if(b>0){g.stones=(g.stones||0)+b;g.bonusNote={n:g.regTotal,b}}}
   if(g.me)g.me.look='self';return g}
 function load(){try{const s=localStorage.getItem(KEY);if(s)return JSON.parse(s)}catch(e){}
@@ -1740,7 +1742,7 @@ function roll(prefNew){let ids=GACHA_IDS;if(prefNew){const nw=ids.filter(id=>!(i
 const ratesHTML=()=>{const tot=GACHA_IDS.reduce((a,id)=>a+gw(id),0);return [[10,'よく出る'],[5,'ふつう'],[2,'出にくい']].map(([w,l])=>{const ids=GACHA_IDS.filter(id=>gw(id)===w);return ids.length?`<tr><td>${l}</td><td class="small">${ids.map(id=>`<span style="${id in G.col?'':'opacity:.5'}">${C[id].n}</span>`).join('、')}</td><td>1人 ${(w/tot*100).toFixed(1)}%</td></tr>`:''}).join('')}
 function pull(n){
   const cost=n===10?1500:150;if(G.stones<cost)return;
-  G.stones-=cost;const res=[];for(let i=0;i<n;i++)res.push(roll(n===10&&i===9));
+  G.stones-=cost;evAdd('pull',n);const res=[];for(let i=0;i<n;i++)res.push(roll(n===10&&i===9));
   const newIds=[];G.dup=G.dup||{};G.pullSold={};G.pullUp=[];res.forEach(id=>{if(!(id in G.col)){G.col[id]=0;newIds.push(id)}else if((G.col[id]||0)>=STAR_MAX){G.stones+=SELL;G.pullSold[id]=(G.pullSold[id]||0)+SELL}else{G.dup[id]=(G.dup[id]||0)+1;if(G.dup[id]>=STAR_NEED[G.col[id]]){G.col[id]++;G.dup[id]=0;G.pullUp.push(id)}}});save();
   const done=()=>{G.pulled=res;G.newIds=newIds;save();render();bgm('title');const best=res.some(id=>C[id].r==='SSR')?2:res.some(id=>C[id].r==='SR')?1:0;setTimeout(best===2?fanfareS:best===1?chime:okS,150)};
   if(G.fxOn)gachaFX(res).then(()=>reveal(res,newIds)).then(done);else done();
@@ -2240,7 +2242,7 @@ const canExam=r=>{const g=gradeOf(r.t);if(((r.yp||{})[g]||0)>=2)return false;if(
 const examName=b=>b+1>=11?'昇段審査':'昇級審査';
 function endTurn(ev){
   const r=G.run,m=monthOf(r.t);
-  const hurt=r.inj>0;
+  const hurt=r.inj>0;joinCheck(ev);
   if((m===7||m===11||m===3)&&canExam(r)){if(hurt)log(`ケガのため${examName(r.belt)}は欠席した…`);else ev.push(exam)}
   if(tourOf(r)){if(hurt){log(`ケガのため${tourOf(r).n}は欠席した…`);if(tourOf(r).kind==='nat')r.natQ=false}else ev.push(tournament)}
   if(m===12)ev.push(xmas);if(m===2)ev.push(valentine);
@@ -2696,6 +2698,7 @@ function vTitle(){
   const has=G.run&&G.run.t<TOTAL&&G.screen!=='reg';
   return `${sndBtn()}<div class="hero">${logoHTML()}<div class="hero-chars"><img src="${IMG.kizuna}" alt="きずなくん"><img src="${IMG.kokoro}" alt="こころちゃん"></div><div class="sub">小学6年間で黒帯をめざす空手育成ゲーム</div></div>
   ${G.bonusNote?`<div class="panel"><b>登録選手${G.bonusNote.n}人のお祝い！</b><div class="small">これまでに登録した選手の記念として、ガチャ石 <b class="gain">${G.bonusNote.b}</b> をプレゼントしました。</div><button class="btn sm" data-a="bnote">とじる</button></div>`:''}
+  ${eventPanel()}
   <div class="menu">
     <button class="btn main" data-a="go" data-v="slots">選手育成<span class="small" style="margin-left:8px;font-family:var(--body)">（スロット ${G.slots.filter(Boolean).length}/3）</span></button>
    <button class="btn" data-a="go" data-v="gacha">稽古パートナー召集（ガチャ）<span class="stones num small" style="margin-left:6px">${G.stones}</span></button>
@@ -2829,11 +2832,51 @@ function pvGo(){const a=pvFighter(PV.a,PV.pw,PV.b),b=pvFighter(PV.b,PV.pw,PV.a);
       show({lines:[],title:`${win?'1P':'2P'}の勝ち！（${how}）`,html:`<div class="small mute">${win?a.name:b.name} の勝利。礼をして、もう一度やってみよう。</div>`,
         choices:[{label:'もう一度',fn:()=>setTimeout(pvGo,30)},{label:'メニューへ',fn:()=>{G.screen='pvp';render()}}]})}})}
 
+/* ================= 固定の仲間の入手（育成の節目・大会） と 定期イベント ================= */
+const JOIN=[
+ {id:'ken',when:r=>r.t>=3,intro:'同期のケンが、道場に入門してきた。'},
+ {id:'yuta',when:r=>r.t>=14,intro:'後輩のユウタが、「いっしょに稽古したい」と言ってきた。'},
+ {id:'mai',when:r=>r.belt>=3,intro:'同期のマイが、いっしょに稽古してくれることになった。'},
+ {id:'takeru',when:r=>r.t>=24,intro:'先輩のタケルが、稽古に付き合ってくれる。'},
+ {id:'hina',when:r=>r.t>=30,intro:'後輩のヒナが、道場に入ってきた。'},
+ {id:'minami',when:r=>r.belt>=5,intro:'道場の娘のミナミが、稽古に混ざってきた。'},
+ {id:'kuroda',when:r=>r.belt>=7,intro:'黒帯のクロダ先輩が、きみを認めてくれた。'},
+ {id:'sora',when:r=>r.belt>=9,intro:'ソラが「飛ぶ技、教えてあげる！」とやってきた。'},
+ {id:'ren',when:r=>(r.trophies||[]).length>=1,intro:'他道場のレンが、「いい試合だった」と声をかけてきた。'},
+ {id:'aki',when:r=>(r.trophies||[]).length>=2,intro:'柔道のアキが、「組手の相手をさせて」とやってきた。'},
+ {id:'taiga',when:r=>(r.trophies||[]).length>=3,intro:'相撲の大河が、「どすこい！ 稽古しよう」と言ってきた。'},
+ {id:'shion',when:r=>(r.trophies||[]).length>=4,intro:'伝統派のシオンが、きみの組手に興味を持った。'},
+ {id:'ryu',when:r=>(r.rep||0)>=2,intro:'道場破りを退けたきみに、リュウが「ぜひ手合わせを」と訪ねてきた。'},
+ {id:'minjun',when:r=>(r.trophies||[]).some(x=>/全国/.test(x)),intro:'全国大会で会ったミンジュンが、仲間になってくれる。'},
+ {id:'rin',when:r=>(r.trophies||[]).some(x=>/優勝/.test(x)&&!/準優勝/.test(x)),intro:'優勝したきみに、剣道の凛が会いにきた。'},
+ {id:'chai',when:r=>(r.trophies||[]).some(x=>/世界/.test(x)),intro:'世界大会で出会ったチャイが、仲間になってくれる。'},
+ {id:'kinjo',when:r=>r.belt>=11,intro:'沖縄古流の金城翁が、「三戦を教えよう」と言ってくれた。'},
+];
+function joinCheck(ev){const r=G.run;if(!r)return;const j=JOIN.find(x=>!(x.id in G.col)&&C[x.id]&&x.when(r));if(!j)return;G.col[j.id]=0;
+  ev.push(n=>{chime();show({lines:[{who:j.id,t:(C[j.id].L||['「押忍！」'])[0]},{who:PART(),t:'「新しい仲間だね！ いっしょにがんばろう！」'}],title:'新しい仲間！',html:`<div class="gain">${C[j.id].n}が仲間になった！</div><div class="small mute">${j.intro}デッキ編成で選べます。</div>`,then:n})})}
+const EVENTS=[
+ {id:'e2611',from:'2026-11-26',to:'2026-12-15',who:'kancho',title:'リニューアル記念（空心館長より）',kind:'arcwin',n:3,label:'アーケードで3回勝つ',stones:3000},
+ {id:'e2612',from:'2026-12-01',to:'2026-12-31',who:'raijin',title:'伝説の空手家 来訪：雷神イカヅチ',kind:'parry',n:20,label:'組手で「さばき」を20回成功させる',stones:5000},
+ {id:'e2701',from:'2027-01-01',to:'2027-01-31',who:'hakutsuru',title:'お正月 伝説の空手家：白鶴のツル婆',kind:'arcwin',n:10,label:'アーケードで10回勝つ',stones:5000},
+ {id:'e2702',from:'2027-02-01',to:'2027-02-28',who:'oni',title:'伝説の空手家 来訪：鬼岳',kind:'pull',n:30,label:'ガチャを30回まわす',stones:5000},
+ {id:'e2703',from:'2027-03-01',to:'2027-03-31',who:'todoroki',title:'伝説の空手家 来訪：轟',kind:'register',n:1,label:'育成を終えて、選手を1人登録する',stones:6000},
+ {id:'e2704',from:'2027-04-01',to:'2027-04-30',who:'hayate',title:'伝説の空手家 来訪：ハヤテ',kind:'parry',n:40,label:'組手で「さばき」を40回成功させる',stones:6000},
+];
+const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+function evAdd(kind,n){n=n||1;try{const td=todayStr();G.evp=G.evp||{};EVENTS.forEach(e=>{if(e.kind!==kind||td<e.from||td>e.to)return;const p=G.evp[e.id]||(G.evp[e.id]={n:0});if(p.claimed||p.n>=e.n)return;p.n=Math.min(e.n,p.n+n);if(p.n>=e.n)setTimeout(()=>{try{toast(e.who,'「ミッションたっせい！ トップ画面で、ごほうびを受け取ろう」')}catch(x){}},500)})}catch(e){}}
+function eventPanel(){const td=todayStr();G.evp=G.evp||{};const md=s=>s.slice(5).replace('-','/');
+  const act=EVENTS.filter(e=>e.from<=td&&td<=e.to),nx=EVENTS.filter(e=>e.from>td).sort((a,b)=>a.from<b.from?-1:1)[0];
+  const row=e=>{const p=G.evp[e.id]||{n:0},done=p.n>=e.n,pct=Math.round(Math.min(1,p.n/e.n)*100);
+    return `<div class="panel" style="border-color:var(--gold)"><div class="who">${av(e.who,44)}<div><b>${e.title}</b><div class="small mute">${md(e.from)} 〜 ${md(e.to)}</div></div></div>
+      <div class="small" style="margin-top:6px">ミッション：${e.label}（${Math.min(p.n,e.n)}/${e.n}）</div><div class="bar"><i style="--w:${pct}%;--c:var(--gold)"></i></div>
+      <div class="small mute" style="margin:4px 0">ごほうび：ガチャ石 ${e.stones}${e.who&&FIXEDSET.has(e.who)&&!(e.who in G.col)?`　と、仲間「${C[e.who].n}」`:''}</div>
+      ${p.claimed?'<div class="small gain">受け取りずみ</div>':`<button class="btn sm main" data-a="evclaim" data-v="${e.id}" ${done?'':'disabled'}>ごほうびを受け取る</button>`}</div>`};
+  return (act.length?`<div class="label">イベント</div>${act.map(row).join('')}`:'')+(nx?`<div class="small mute">つぎのイベント：${md(nx.from)}〜 ${nx.title}</div>`:'')}
 /* ================= 遊び方 と セーブの引き継ぎ ================= */
 const HELP=[
  {t:'ゲームのながれ',h:`<div class="small">・<b>選手育成</b>：小学1年から6年までの72か月で、黒帯（初段）をめざします。<br>・毎月、<b>稽古を1つ</b>えらびます。仲間が集まる稽古だと、より強くなれます。<br>・稽古のあとに「<b>疲れ</b>」がたまります。疲れすぎるとケガをするので、ときどき<b>休み</b>ましょう。<br>・審査に合格すると帯が上がります。大会にも出られます。<br>・6年生の終わりに、育てた選手を<b>登録</b>できます（選手名鑑）。ガチャの石ももらえます。</div>`},
  {t:'ポイントと才能の器',h:`<div class="small">・稽古で、<b>体・技・心</b>のポイントがたまります。<b>能力アップ</b>で、好きな能力に振り分けます。<br>・能力の合計には<b>才能の器</b>（上限）があります。<b>全部は伸ばせない</b>ので、どこを伸ばすかが大事です。<br>・伸ばし方で、選手の<b>タイプ</b>が決まります。<br>　<b>パワー型</b>：重い技で押し切る<br>　<b>スピード型</b>：素早く先手を取る<br>　<b>技型</b>：必殺技のゲージがたまりやすい<br>　<b>心型</b>：「さばき」が得意<br>　<b>バランス型</b>：弱点が少ない<br>・特化した選手ほど、総合評価の<b>S</b>をねらえます。</div>`},
- {t:'仲間とガチャ',h:`<div class="small">・<b>ガチャ</b>では、道場のみんな（道場生）が出ます。同じ子がまた出ると<b>★が増えて</b>、N→R→SR→SSRと成長します（★6でMAX）。★MAXの子がまた出たら、自動で売却して石になります。<br>・<b>館長・師範代・伝説の空手家など</b>は、ガチャには出ない「固定の仲間」です。<br>・仲間と同じ稽古で、絆が<b>80以上</b>になると「<b>友情稽古</b>」が発動して、大きく伸びます。<br>・技の<b>コツ</b>を教えてくれるのは、<b>SR以上</b>の仲間だけです。</div>`},
+ {t:'仲間とガチャ',h:`<div class="small">・<b>ガチャ</b>では、道場のみんな（道場生）が出ます。同じ子がまた出ると<b>★が増えて</b>、N→R→SR→SSRと成長します（★6でMAX）。★MAXの子がまた出たら、自動で売却して石になります。<br>・<b>館長・師範代・他流派・伝説の空手家など</b>は、ガチャには出ない「固定の仲間」です。育成が進んだり、大会で活躍したり、<b>月ごとのイベント</b>をクリアしたりすると、少しずつ仲間になります。<br>・仲間と同じ稽古で、絆が<b>80以上</b>になると「<b>友情稽古</b>」が発動して、大きく伸びます。<br>・技の<b>コツ</b>を教えてくれるのは、<b>SR以上</b>の仲間だけです。</div>`},
  {t:'組手（くみて）のやり方',h:`<div class="small">・<b>◀▶</b>で前後に動きます。技のボタンで攻撃します。<br>・<b>上段ガード・下段ガード</b>は、押し続けます。相手の技の高さ（上段・中段・下段）に合わせましょう。<br>・<b>さばき</b>は、相手の技が当たる<b>直前</b>に押します。成功すると、相手が「ぴよぴよ」になります。外すとスキができます。<br>・ぴよぴよ中に<b>上段</b>の技が当たると<b>技あり</b>。<b>必殺技</b>なら<b>一本</b>です。<br>・時間切れは、<b>技あり</b>の数、つぎに<b>体力</b>で勝ち負けが決まります。</div>`},
  {t:'ひとりで対戦・石・引き継ぎ',h:`<div class="small">・<b>ひとりで対戦（アーケード）</b>：道場のみんなと順番に戦います。勝った相手は<b>使えるキャラ</b>になって、2人対戦でも選べます。<br>・ガチャの<b>石</b>は、育成を終えると1000、登録した選手が3人・5人・10人…になるとお祝いでたくさん、定期イベントでももらえます。<br>・<b>大切</b>：このゲームのデータは、この<b>ブラウザの中</b>にあります。ブラウザのデータを消すと、育てた選手も消えます。トップの「<b>セーブの引き継ぎ</b>」で<b>コード</b>を作って、メモやメッセージに保存しておくと安心です。機種を変えるときも、このコードで引き継げます。</div>`},
 ];
@@ -2889,7 +2932,7 @@ function arcFight(){const id=ARC.list[ARC.stage],s=ARC.stage,n=ARC.list.length,b
   const pw=Math.round((26+s*2.1)*[.85,1,1.2][ARC.diff]*(boss?1.08:1));const b=pvFighter(id,pw,null);
   b.lvl=clamp(.42+s*.018+[-.08,0,.06][ARC.diff]+(boss?.05:0),.4,.92);
   fightRT({me:a,en:b,title:`アーケード ${s+1}/${n}　${a.name} vs ${b.name}`,bg:'local',onEnd:(win,how)=>{if(!how){ARC.on=false;render();return}win?arcWin(id):arcLose(id)}})}
-function arcWin(id){G.unlocked=G.unlocked||{};const first=!G.unlocked[id];G.unlocked[id]=1;ARC.stage++;save();
+function arcWin(id){evAdd('arcwin');G.unlocked=G.unlocked||{};const first=!G.unlocked[id];G.unlocked[id]=1;ARC.stage++;save();
   if(ARC.stage>=ARC.list.length){G.arcClears=(G.arcClears||0)+1;save();fanfareS();
     show({lines:[],title:'アーケード クリア！',html:`<div class="small">全${ARC.list.length}人に勝ちました！ おめでとう！<br>解放したキャラ：${arcUnlocked().length-2}人</div>${first?`<div class="gain">「${C[id].n}」が使えるようになった！</div>`:''}`,choices:[{label:'もう一度あそぶ',fn:()=>setTimeout(arcStart,30)},{label:'メニューへ',fn:()=>{ARC.on=false}}]});return}
   show({lines:[],who:id,sub:C[id].cat,title:'勝利！',html:first?`<div class="gain">「${C[id].n}」が使えるようになった！</div><div class="small mute">2人対戦や、次のアーケードで選べます。</div>`:'<div class="small mute">解放ずみのキャラです。</div>',
@@ -2961,14 +3004,14 @@ const A={
   pva:v=>{PV.a=v;render()},pvb:v=>{PV.b=v;render()},pvw:v=>{PV.pw=+v;render()},pvgo:()=>pvGo(),
   cardv:id=>cardDetail(id),cal:()=>yearPlan(),
   bnote:()=>{G.bonusNote=null;save();render()},
-  arcsel:v=>{ARC.sel=v;render()},arcdiff:v=>{ARC.diff=+v;render()},arcgo:()=>arcStart(),help:()=>helpShow(0),xfer:()=>xferShow(),
+  arcsel:v=>{ARC.sel=v;render()},arcdiff:v=>{ARC.diff=+v;render()},arcgo:()=>arcStart(),evclaim:v=>{const e=EVENTS.find(x=>x.id===v);if(!e)return;G.evp=G.evp||{};const p=G.evp[v]||(G.evp[v]={n:0});if(p.claimed||p.n<e.n)return;p.claimed=true;G.stones+=e.stones;if(e.who&&FIXEDSET.has(e.who)&&!(e.who in G.col))G.col[e.who]=0;save();fanfareS();render();setTimeout(()=>toast(e.who||PART(),`「ごほうびをもらったよ！ ガチャ石 ${e.stones}」`),300)},help:()=>helpShow(0),xfer:()=>xferShow(),
   rview:i=>rosterView(+i),
   rfight:i=>{G.kfighter=+i;G.screen='kumite';save();render()},
   rlook:v=>{const nm=$('#rnm');if(nm)G.me.name=nm.value.trim()||G.me.name;G.me.look=v;save();render()},
   register:()=>{const r=G.run,nm=$('#rnm');G.me.name=(nm&&nm.value.trim())||PS();
     const s=r.st;const grade=gradeOfSt(s);
     G.roster.unshift({name:G.me.name,base:P(),look:G.me.look,art:meArt(),st:{...s},skills:[...r.skills],belt:r.belt,grade,type:playerType(s),trophies:[...(r.trophies||[])]});G.roster=G.roster.slice(0,20);
-    G.stones+=1000;G.regTotal=(G.regTotal||0)+1;const rb=regBonus(G.regTotal);if(rb)G.stones+=rb;G.run=null;G.screen='roster';save();render();fanfareS();sayV('me','osu');if(rb)setTimeout(()=>{chime();toast(PART(),`「登録${G.regTotal}人目！ お祝いに石${rb}をもらったよ！」`)},900)},
+    G.stones+=1000;evAdd('register');G.regTotal=(G.regTotal||0)+1;const rb=regBonus(G.regTotal);if(rb)G.stones+=rb;G.run=null;G.screen='roster';save();render();fanfareS();sayV('me','osu');if(rb)setTimeout(()=>{chime();toast(PART(),`「登録${G.regTotal}人目！ お祝いに石${rb}をもらったよ！」`)},900)},
 };
 app.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.disabled)return;A[b.dataset.a]&&A[b.dataset.a](b.dataset.v)});
 
