@@ -2006,11 +2006,11 @@ function songOp(){return new Promise(async resolve=>{
 })}
 /* アプリ起動時: タップで始める画面 → 主題歌OP → タイトル（ブラウザの決まりで音は1回のタップが必要） */
 let opLaunched=false;
-function launchOp(){if(opLaunched)return;opLaunched=true;if(G.opOff)return;
+function launchOp(){if(opLaunched)return;opLaunched=true;if(G.opOff){if(!G.seenHelp)setTimeout(()=>helpShow(0),600);return}
   const s=document.createElement('div');s.id='sopsplash';
   s.innerHTML=`<div class="sp-in">${logoHTML()}<p>タップして スタート</p></div>`;
   document.body.appendChild(s);
-  s.onclick=async()=>{s.onclick=null;started=true;try{ac()}catch(e){}songOp();s.style.opacity='0';setTimeout(()=>s.remove(),320)};
+  s.onclick=async()=>{s.onclick=null;started=true;try{ac()}catch(e){}songOp().then(()=>{if(G&&!G.seenHelp)setTimeout(()=>helpShow(0),400)});s.style.opacity='0';setTimeout(()=>s.remove(),320)};
 }
 
 /* ================= opening ================= */
@@ -2706,6 +2706,8 @@ function vTitle(){
    <button class="btn main" data-a="go" data-v="arcade">ひとりで対戦（アーケード）<span class="small" style="margin-left:8px;font-family:var(--body)">勝つとキャラが増える</span></button>
    <button class="btn" data-a="go" data-v="pvp">2人対戦（1P vs 2P）</button>
    <button class="btn" data-a="go" data-v="roster">選手名鑑（${G.roster.length}人）</button>
+   <button class="btn" data-a="help">遊び方</button>
+   <button class="btn" data-a="xfer">セーブの引き継ぎ（コード）</button>
   </div>
   <div class="panel small mute">ガチャの石はすべてゲーム内の無料ポイントです。育成を1回終えると1000、登録した選手が3人・5人・10人（以降10人ごと）になると、お祝いでたくさんもらえます。定期イベントでも、もらえます。<br>声：VOICEVOX:玄野武宏、白上虎太郎、春日部つむぎ</div>`;
 }
@@ -2827,6 +2829,38 @@ function pvGo(){const a=pvFighter(PV.a,PV.pw,PV.b),b=pvFighter(PV.b,PV.pw,PV.a);
       show({lines:[],title:`${win?'1P':'2P'}の勝ち！（${how}）`,html:`<div class="small mute">${win?a.name:b.name} の勝利。礼をして、もう一度やってみよう。</div>`,
         choices:[{label:'もう一度',fn:()=>setTimeout(pvGo,30)},{label:'メニューへ',fn:()=>{G.screen='pvp';render()}}]})}})}
 
+/* ================= 遊び方 と セーブの引き継ぎ ================= */
+const HELP=[
+ {t:'ゲームのながれ',h:`<div class="small">・<b>選手育成</b>：小学1年から6年までの72か月で、黒帯（初段）をめざします。<br>・毎月、<b>稽古を1つ</b>えらびます。仲間が集まる稽古だと、より強くなれます。<br>・稽古のあとに「<b>疲れ</b>」がたまります。疲れすぎるとケガをするので、ときどき<b>休み</b>ましょう。<br>・審査に合格すると帯が上がります。大会にも出られます。<br>・6年生の終わりに、育てた選手を<b>登録</b>できます（選手名鑑）。ガチャの石ももらえます。</div>`},
+ {t:'ポイントと才能の器',h:`<div class="small">・稽古で、<b>体・技・心</b>のポイントがたまります。<b>能力アップ</b>で、好きな能力に振り分けます。<br>・能力の合計には<b>才能の器</b>（上限）があります。<b>全部は伸ばせない</b>ので、どこを伸ばすかが大事です。<br>・伸ばし方で、選手の<b>タイプ</b>が決まります。<br>　<b>パワー型</b>：重い技で押し切る<br>　<b>スピード型</b>：素早く先手を取る<br>　<b>技型</b>：必殺技のゲージがたまりやすい<br>　<b>心型</b>：「さばき」が得意<br>　<b>バランス型</b>：弱点が少ない<br>・特化した選手ほど、総合評価の<b>S</b>をねらえます。</div>`},
+ {t:'仲間とガチャ',h:`<div class="small">・<b>ガチャ</b>では、道場のみんな（道場生）が出ます。同じ子がまた出ると<b>★が増えて</b>、N→R→SR→SSRと成長します（★6でMAX）。★MAXの子がまた出たら、自動で売却して石になります。<br>・<b>館長・師範代・伝説の空手家など</b>は、ガチャには出ない「固定の仲間」です。<br>・仲間と同じ稽古で、絆が<b>80以上</b>になると「<b>友情稽古</b>」が発動して、大きく伸びます。<br>・技の<b>コツ</b>を教えてくれるのは、<b>SR以上</b>の仲間だけです。</div>`},
+ {t:'組手（くみて）のやり方',h:`<div class="small">・<b>◀▶</b>で前後に動きます。技のボタンで攻撃します。<br>・<b>上段ガード・下段ガード</b>は、押し続けます。相手の技の高さ（上段・中段・下段）に合わせましょう。<br>・<b>さばき</b>は、相手の技が当たる<b>直前</b>に押します。成功すると、相手が「ぴよぴよ」になります。外すとスキができます。<br>・ぴよぴよ中に<b>上段</b>の技が当たると<b>技あり</b>。<b>必殺技</b>なら<b>一本</b>です。<br>・時間切れは、<b>技あり</b>の数、つぎに<b>体力</b>で勝ち負けが決まります。</div>`},
+ {t:'ひとりで対戦・石・引き継ぎ',h:`<div class="small">・<b>ひとりで対戦（アーケード）</b>：道場のみんなと順番に戦います。勝った相手は<b>使えるキャラ</b>になって、2人対戦でも選べます。<br>・ガチャの<b>石</b>は、育成を終えると1000、登録した選手が3人・5人・10人…になるとお祝いでたくさん、定期イベントでももらえます。<br>・<b>大切</b>：このゲームのデータは、この<b>ブラウザの中</b>にあります。ブラウザのデータを消すと、育てた選手も消えます。トップの「<b>セーブの引き継ぎ</b>」で<b>コード</b>を作って、メモやメッセージに保存しておくと安心です。機種を変えるときも、このコードで引き継げます。</div>`},
+];
+function helpShow(i){i=Math.max(0,Math.min(HELP.length-1,i||0));const p=HELP[i];G.seenHelp=true;
+  show({lines:[],title:`遊び方 ${i+1}/${HELP.length}　${p.t}`,html:p.h,
+    choices:[...(i<HELP.length-1?[{label:'つぎへ ▶',fn:()=>setTimeout(()=>helpShow(i+1),30)}]:[]),...(i>0?[{label:'◀ まえへ',fn:()=>setTimeout(()=>helpShow(i-1),30)}]:[]),{label:'とじる'}]})}
+async function xferEncode(){const j=JSON.stringify(G,(k,v)=>(k==='_t'||k==='pulled'||k==='newIds')?undefined:v);let bytes=new TextEncoder().encode(j),tag='p';
+  try{if(typeof CompressionStream!=='undefined'){const cs=new CompressionStream('gzip');const w=cs.writable.getWriter();w.write(bytes);w.close();bytes=new Uint8Array(await new Response(cs.readable).arrayBuffer());tag='z'}}catch(e){tag='p';bytes=new TextEncoder().encode(j)}
+  let s='';for(let i=0;i<bytes.length;i+=0x8000)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));
+  return 'KS2'+tag+btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+async function xferDecode(code){code=String(code||'').replace(/\s+/g,'');if(!/^KS2[zp][A-Za-z0-9_-]+$/.test(code))throw new Error('形式がちがいます');
+  const tag=code[3];let b64=code.slice(4).replace(/-/g,'+').replace(/_/g,'/');b64+='='.repeat((4-b64.length%4)%4);const bin=atob(b64),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));let txt;
+  if(tag==='z'){const ds=new DecompressionStream('gzip');const w=ds.writable.getWriter();w.write(bytes);w.close();txt=new TextDecoder().decode(await new Response(ds.readable).arrayBuffer())}else txt=new TextDecoder().decode(bytes);
+  const o=JSON.parse(txt);if(!o||typeof o!=='object'||!o.col||typeof o.col!=='object'||!o.me||(o.me.base!=='kizuna'&&o.me.base!=='kokoro'))throw new Error('このゲームのコードではありません');return o}
+function xferShow(){
+  show({lines:[],title:'セーブの引き継ぎ',html:`<div class="small mute">いまのデータを<b>コード</b>にして、メモなどに保存できます。コードを貼りつけて「読み込む」と、データが<b>そのコードの状態に置きかわります</b>。</div>
+    <textarea id="xcode" class="inp" rows="6" style="width:100%;font-size:12px;word-break:break-all" placeholder="ここにコードが出ます。読み込むときは、ここに貼りつけます" spellcheck="false"></textarea>
+    <div class="row"><button class="btn sm" type="button" id="xmk">いまのデータのコードを作る</button><button class="btn sm" type="button" id="xcp">コピー</button></div>
+    <div class="row"><button class="btn sm" type="button" id="xld">このコードを読み込む</button></div><div class="small" id="xmsg"></div>`,
+    choices:[{label:'とじる'}]});
+  const ta=modal.querySelector('#xcode'),msg=modal.querySelector('#xmsg'),say=(t,w)=>{msg.className='small'+(w?' warn':'');msg.textContent=t};
+  modal.querySelector('#xmk').onclick=async()=>{try{say('作っています…');ta.value=await xferEncode();ta.select();say(`コードができました（${ta.value.length}文字）。「コピー」して、大切に保存してください。`)}catch(e){say('コードを作れませんでした。',1)}};
+  modal.querySelector('#xcp').onclick=async()=>{if(!ta.value){say('先にコードを作ってください。',1);return}try{await navigator.clipboard.writeText(ta.value);say('コピーしました。')}catch(e){ta.select();say('コピーできないときは、文字を選んで、長押しでコピーしてください。')}};
+  modal.querySelector('#xld').onclick=async()=>{let o;try{o=await xferDecode(ta.value)}catch(e){say('読み込めません：'+(/^(形式|このゲーム)/.test(e.message||'')?e.message:'コードが壊れているようです。もう一度たしかめてください'),1);return}
+    const nm=(o.roster||[]).length,st=Object.keys(o.col||{}).filter(id=>!FIXEDSET.has(id)).length;
+    show({lines:[],title:'このコードを読み込みますか？',html:`<div class="small">登録した選手 <b>${nm}人</b>・集めた道場生 <b>${st}人</b>・ガチャ石 <b>${o.stones||0}</b><br><span class="warn">いまのデータは、このコードの内容に置きかわります。</span></div>`,
+      choices:[{label:'読み込む',fn:()=>{o._t=Date.now();o.screen='title';adoptSave(o);save();toast(PART(),'「データを読み込んだよ！」')}},{label:'やめる',fn:()=>{}}]})}}
 /* ================= アーケード（ひとりで対戦: 勝った相手が使えるキャラになる） ================= */
 const ARC_STAGES=['rino','swan','shunshun','rami','rana','atsushi','ryoto','ryusei','kuroda','kaito','saaya','akari','raito','akihito','kaita','gaoto','bashin','oshiro','taisei','hinata','kirato','kanata','nijito','maho','makita','kancho'];
 const ARC_BOSS={kuroda:'第1ブロックのボス',oshiro:'第2ブロックのボス',kancho:'最終ボス'};
@@ -2927,7 +2961,7 @@ const A={
   pva:v=>{PV.a=v;render()},pvb:v=>{PV.b=v;render()},pvw:v=>{PV.pw=+v;render()},pvgo:()=>pvGo(),
   cardv:id=>cardDetail(id),cal:()=>yearPlan(),
   bnote:()=>{G.bonusNote=null;save();render()},
-  arcsel:v=>{ARC.sel=v;render()},arcdiff:v=>{ARC.diff=+v;render()},arcgo:()=>arcStart(),
+  arcsel:v=>{ARC.sel=v;render()},arcdiff:v=>{ARC.diff=+v;render()},arcgo:()=>arcStart(),help:()=>helpShow(0),xfer:()=>xferShow(),
   rview:i=>rosterView(+i),
   rfight:i=>{G.kfighter=+i;G.screen='kumite';save();render()},
   rlook:v=>{const nm=$('#rnm');if(nm)G.me.name=nm.value.trim()||G.me.name;G.me.look=v;save();render()},
