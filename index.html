@@ -16,7 +16,7 @@
 #bt.land .bt-help{grid-area:help;max-width:none;font-size:10px}
 #bt.land .acts{grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
 #bt.land .acts button{min-height:40px}
-#bt.land .pad{grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px)}
+#bt.land .pad{grid-template-columns:repeat(2,58px);grid-template-rows:58px}
 @media (orientation:portrait){#bt.land{--lh:100vw;inset:auto;top:0;left:100vw;width:100vh;height:100vw;transform:rotate(90deg);transform-origin:top left}}
 </style>
 <style>
@@ -278,13 +278,14 @@ table.rates td:last-child{text-align:right;white-space:nowrap}
 .bt-title{font-family:var(--display);font-size:16px}
 #bt canvas{width:min(100%,640px,calc(50vh * 600 / 330));height:auto;aspect-ratio:600/330;border-radius:10px;background:#1a1d2e;flex:none}
 .bt-ctl{width:100%;max-width:640px;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
-.pad{display:grid;grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px);gap:4px}
+.pad{display:grid;grid-template-columns:repeat(2,72px);grid-template-rows:72px;gap:6px}
 .pad button,.acts button{background:var(--panel2);border:1px solid var(--line);border-radius:10px;font-weight:700;font-size:12.5px;line-height:1.15;touch-action:none}
-.pu{grid-column:2;grid-row:1}.pl{grid-column:1;grid-row:2}.pr2{grid-column:3;grid-row:2}.pd{grid-column:2;grid-row:3}
+.pl{grid-column:1;grid-row:1}.pr2{grid-column:2;grid-row:1}
 .acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .acts button{min-height:50px;padding:4px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .acts small{font-size:9.5px;color:var(--mute);font-weight:500}
 .acts .gd{background:#24496e}
+.acts .prb{background:linear-gradient(135deg,#1c5a46,#2f9a74);border-color:#7fe0b0}
 .acts .lv-high{border-color:#ff8a65}.acts .lv-low{border-color:#81c784}
 .acts .gold{background:linear-gradient(135deg,#6a4a08,#c99a2a);color:#fff}
 .pad button.on,.acts button.on{background:var(--shu)!important}
@@ -293,7 +294,7 @@ table.rates td:last-child{text-align:right;white-space:nowrap}
 .pvc{display:flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);color:inherit;font-size:12px;font-weight:700}
 .pvc.sel{border-color:var(--gold);background:#3a3018}
 .bt-help{max-width:640px;font-size:11px;color:var(--mute);line-height:1.5}
-@media (max-width:420px){.pad{grid-template-columns:repeat(3,42px);grid-template-rows:repeat(3,42px)}.acts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px){.pad{grid-template-columns:repeat(2,62px);grid-template-rows:62px}.acts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition:none!important}}
 @media (max-width:420px){.practice{gap:4px}.pr .tn{font-size:19px}.st{grid-template-columns:5.4em 1.2em 1fr 2em;font-size:12px}.stats{gap:6px 10px}}
 /* ===== logo ===== */
@@ -1103,8 +1104,8 @@ const FPOSES=[['idle','normal'],['idle','grit'],['guard','grit'],['punch','grit'
 let markImg=null;
 function mkF(d,isMe,x){const st=d.st,hp=Math.round(100+st.tai*.6+st.tough*.4),sta=60+st.tai/2;
  return {d,isMe,x,z:0,face:isMe?1:-1,hp:Math.max(1,Math.round(hp*(d.hpPct??1))),max:hp,sta,staMax:sta,ki:0,state:'idle',t:0,mv:null,hitN:0,landed:false,waza:0,slow:0,combo:0,comboT:0,
-  osu:d.skills.includes('osu'),osuUsed:false,sc:Math.max(.72,Math.min(1.25,1.25-st.spd/200)),ai:{t:0,dx:0,dz:0,guard:0,re:false},walk:0,downT:0,lvl:d.lvl||.5,trail:[]}}
-const fspd=f=>(1.7+f.d.st.spd/55)*(f.slow>0?.6:1);
+  osu:d.skills.includes('osu'),osuUsed:false,sc:Math.max(.68,Math.min(1.25,(1.25-st.spd/200)*(playerType(st)==='spd'?.92:1))),ai:{t:0,dx:0,dz:0,guard:0,gl:'high',re:false},walk:0,downT:0,lvl:d.lvl||.5,trail:[],pt:playerType(st),pw:playerType(st)==='mnd'?20:16,gl:'high',stunT:0,pH:0}}
+const fspd=f=>(1.7+f.d.st.spd/55)*(f.slow>0?.6:1)*(f.pt==='pow'?.95:1);
 const canAct=f=>f.state==='idle'||f.state==='walk'||f.state==='guard';
 function padConnected(){try{return [...(navigator.getGamepads?navigator.getGamepads():[])].some(g=>g&&g.connected)}catch(e){return false}}
 function fightRT(o){
@@ -1115,25 +1116,25 @@ function fightRT(o){
   <div class="bt-cvw"><canvas id="bt-cv" width="600" height="330"></canvas>
    <div class="vs" id="vs"><div class="vs-l">${o.me.portrait||''}<b>${o.me.name}</b><small>${o.me.belt||''}</small></div><div class="vs-c">VS</div><div class="vs-r">${o.en.portrait||''}<b>${o.en.name}</b><small>${o.en.belt||''}</small></div></div></div>
   <div class="bt-ctl">
-   <div class="pad"><button type="button" data-k="u" class="pu">奥<br>↑</button><button type="button" data-k="l" class="pl">◀</button><button type="button" data-k="r" class="pr2">▶</button><button type="button" data-k="d" class="pd">↓<br>手前</button></div>
-   <div class="acts"><button type="button" data-k="g" class="gd">受け<small>押し続ける</small></button>${mv.map(m=>`<button type="button" data-mv="${m}" class="mvb lv-${MV[m].lv}">${MV[m].n}<small>${MV[m].lv==='high'?'上段':MV[m].lv==='low'?'下段':'中段'}${MV[m].tr?'・回し':''}</small></button>`).join('')}${gold.map(m=>`<button type="button" data-mv="${m}" class="mvb gold">${MV[m].n}<small>必殺・気力MAX</small></button>`).join('')}</div>
+   <div class="pad"><button type="button" data-k="l" class="pl">◀</button><button type="button" data-k="r" class="pr2">▶</button></div>
+   <div class="acts"><button type="button" data-k="u" class="gd">上段ガード<small>押し続ける</small></button><button type="button" data-k="d" class="gd">下段ガード<small>押し続ける</small></button><button type="button" data-k="p" class="gd prb">さばき<small>タイミング！</small></button>${mv.map(m=>`<button type="button" data-mv="${m}" class="mvb lv-${MV[m].lv}">${MV[m].n}<small>${MV[m].lv==='high'?'上段':MV[m].lv==='low'?'下段':'中段'}</small></button>`).join('')}${gold.map(m=>`<button type="button" data-mv="${m}" class="mvb gold">${MV[m].n}<small>必殺・気力MAX</small></button>`).join('')}</div>
   </div>
-  <div class="bt-help">◀▶で前後、奥・手前でサイドステップ。まっすぐの技（突き・前蹴り）は横によけられ、「回し」の技は横にいても当たる。顔面への突きは反則なので、突きはボディ。<br>Joy-Con・コントローラー：スティック/十字キーで移動、${padMap||'Aで技'}、L/ZLで受け、R/ZRで必殺。キーボード：矢印・Zで受け・X・C・V・B・N・Mで技（画面のボタンの左から順）・スペースで必殺</div>`;
+  <div class="bt-help">◀▶で前後に動く。<b>上段・下段ガード</b>は押し続けて、相手の技の高さに合わせる（中段は半分だけ防げる）。<b>さばき</b>は、相手の技が当たる直前に押すと、技を流して相手を「ぴよぴよ」にできる！ はずすとスキができる。顔面への突きは反則なので、突きはボディ。<br>Joy-Con・コントローラー：スティック/十字キー上下でガード、${padMap||'Aで技'}、L/ZLでさばき、R/ZRで必殺。キーボード：←→で移動・↑↓でガード・Zでさばき・X・C・V・B・N・Mで技（画面のボタンの左から順）・スペースで必殺</div>`;
  const mv2=o.pvp?o.en.skills.filter(k=>MV[k]&&!MV[k].ki).slice(0,6):[],gold2=o.pvp?o.en.skills.filter(k=>MV[k]&&MV[k].ki):[];
  if(o.pvp){const c1=ov.querySelector('.bt-ctl'),c2=c1.cloneNode(true);c2.classList.add(o.land?'p2l':'p2');if(o.land)c1.classList.add('p1l');
-  const SW=o.land?{l:'l',r:'r',u:'u',d:'d'}:{l:'r',r:'l',u:'d',d:'u'};
+  const SW=o.land?{l:'l',r:'r'}:{l:'r',r:'l'};
   c2.querySelectorAll('.pad [data-k]').forEach(b=>{b.dataset.k2=SW[b.dataset.k];b.removeAttribute('data-k')});
   const lvT=m=>MV[m].lv==='high'?'上段':MV[m].lv==='low'?'下段':'中段';
-  c2.querySelector('.acts').innerHTML=`<button type="button" data-k2="g" class="gd">受け<small>押し続ける</small></button>`+mv2.map(m=>`<button type="button" data-mv2="${m}" class="mvb lv-${MV[m].lv}">${MV[m].n}<small>${lvT(m)}${MV[m].tr?'・回し':''}</small></button>`).join('')+gold2.map(m=>`<button type="button" data-mv2="${m}" class="mvb gold">${MV[m].n}<small>必殺・気力MAX</small></button>`).join('');
+  c2.querySelector('.acts').innerHTML=`<button type="button" data-k2="u" class="gd">上段ガード<small>押し続ける</small></button><button type="button" data-k2="d" class="gd">下段ガード<small>押し続ける</small></button><button type="button" data-k2="p" class="gd prb">さばき<small>タイミング！</small></button>`+mv2.map(m=>`<button type="button" data-mv2="${m}" class="mvb lv-${MV[m].lv}">${MV[m].n}<small>${lvT(m)}</small></button>`).join('')+gold2.map(m=>`<button type="button" data-mv2="${m}" class="mvb gold">${MV[m].n}<small>必殺・気力MAX</small></button>`).join('');
   const tag=document.createElement('div');tag.className='pvtag';tag.textContent='2P（赤・右）';c2.prepend(tag);
   const tag1=document.createElement('div');tag1.className='pvtag';tag1.textContent='1P（青・左）';c1.prepend(tag1);
   ov.insertBefore(c2,ov.querySelector('.bt-cvw'));
-  ov.querySelector('.bt-help').innerHTML=(o.land?'<b>2人対戦（横画面）</b>：左が1P・右が2Pのボタンです。':'<b>2人対戦</b>：同じ画面で2人が向かい合って遊びます')+'（タブレットや、パソコンのキーボード向け）。<br><b>1P</b>（左）W A S D＝移動・F＝受け・Q E R T Y U＝技・スペース＝必殺<br><b>2P</b>（右）矢印キー＝移動・/＝受け・J K L ; N M＝技・Enter＝必殺<br>コントローラーは、1台目が1P、2台目が2Pになります。'+(o.land?'':'画面のボタンは、2Pが上向きです。')+'';}
+  ov.querySelector('.bt-help').innerHTML=(o.land?'<b>2人対戦（横画面）</b>：左が1P・右が2Pのボタンです。':'<b>2人対戦</b>：同じ画面で2人が向かい合って遊びます')+'（タブレットや、パソコンのキーボード向け）。<br><b>1P</b>（左）A D＝移動・W S＝上下ガード・F＝さばき・Q E R T Y U＝技・スペース＝必殺<br><b>2P</b>（右）←→＝移動・↑↓＝上下ガード・/＝さばき・J K L ; N M＝技・Enter＝必殺<br>コントローラーは、1台目が1P、2台目が2Pになります。'+(o.land?'':'画面のボタンは、2Pが上向きです。')+'';}
  ov.hidden=false;bgm('battle');
  if(!markImg&&typeof MARK_SRC!=='undefined'){markImg=new Image();markImg.src=MARK_SRC}
  const cv=ov.querySelector('canvas'),ctx=cv.getContext('2d');const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=600*dpr;cv.height=330*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
  const me=mkF(o.me,true,190),en=mkF(o.en,false,410);
- const keys={l:0,r:0,u:0,d:0,g:0},keys2={l:0,r:0,u:0,d:0,g:0};
+ const keys={l:0,r:0,u:0,d:0,g:0,p:0},keys2={l:0,r:0,u:0,d:0,g:0,p:0};
  BT={o,me,en,ctx,dpr,keys,pk:{},want:null,fx:[],pops:[],dust:[],cut:null,hitstop:0,slow:0,sub:0,timer:(o.time||60)*60,clk:o.clock||1,done:false,doneT:0,shake:0,zoom:1,start:200,raf:0,gold,mv,prevBtn:[],bg:null,keys2,want2:null,pk2:{},prevBtn2:[],mv2,gold2};
  if(o.bg){const b0=BT,im=new Image();im.onload=()=>{b0.bg=im};im.src=`assets/bg/${o.bg}.webp`}
  ov.querySelectorAll('[data-k]').forEach(b=>{const k=b.dataset.k;const on=e=>{e.preventDefault();keys[k]=1;b.classList.add('on')};const off=()=>{keys[k]=0;b.classList.remove('on')};
@@ -1143,8 +1144,8 @@ function fightRT(o){
   b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointerleave',off);b.addEventListener('pointercancel',off);b.addEventListener('contextmenu',e=>e.preventDefault())});
  ov.querySelectorAll('[data-mv2]').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();BT.want2=b.dataset.mv2;b.classList.add('on');setTimeout(()=>b.classList.remove('on'),120)}));
  ov.querySelector('#bt-quit').onclick=()=>o.pvp?closeFight():finish(BT.en,'降参');
- const KM=o.pvp?{a:'l',A:'l',d:'r',D:'r',w:'u',W:'u',s:'d',S:'d',f:'g',F:'g'}:{ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u',ArrowDown:'d',z:'g',Z:'g'},MK=o.pvp?'qertyu':'xcvbnm';
- const KM2={ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u',ArrowDown:'d','/':'g'},MK2='jkl;nm';
+ const KM=o.pvp?{a:'l',A:'l',d:'r',D:'r',w:'u',W:'u',s:'d',S:'d',f:'p',F:'p'}:{ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u',ArrowDown:'d',z:'p',Z:'p'},MK=o.pvp?'qertyu':'xcvbnm';
+ const KM2={ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u',ArrowDown:'d','/':'p'},MK2='jkl;nm';
  BT.kd=e=>{if(o.pvp&&e.target&&/^(INPUT|TEXTAREA)$/.test(e.target.tagName))return;if(KM[e.key]){keys[KM[e.key]]=1;e.preventDefault()}const i=e.key.length===1?MK.indexOf(e.key.toLowerCase()):-1;if(i>=0&&mv[i])BT.want=mv[i];if(e.key===' '&&gold[0]){BT.want=gold[0];e.preventDefault()}
   if(o.pvp){if(KM2[e.key]){keys2[KM2[e.key]]=1;e.preventDefault()}const j=e.key.length===1?MK2.indexOf(e.key.toLowerCase()):-1;if(j>=0&&mv2[j])BT.want2=mv2[j];if(e.key==='Enter'&&gold2[0]){BT.want2=gold2[0];e.preventDefault()}}};
  BT.ku=e=>{if(KM[e.key])keys[KM[e.key]]=0;if(o.pvp&&KM2[e.key])keys2[KM2[e.key]]=0};
@@ -1156,7 +1157,7 @@ function padRead(gp,P,pk,mvs,golds,wk){
  if(!gp)return;
  const ax=gp.axes||[],b=gp.buttons||[],pr=i=>!!(b[i]&&(b[i].pressed||b[i].value>.5));
  if((ax[0]||0)<-.4||pr(14))P.l=1;if((ax[0]||0)>.4||pr(15))P.r=1;if((ax[1]||0)<-.4||pr(12))P.u=1;if((ax[1]||0)>.4||pr(13))P.d=1;
- if(pr(4)||pr(6))P.g=1;
+ if(pr(4)||pr(6))P.p=1;
  const now=b.map((_,i)=>pr(i)),prev=BT[pk];
  const edge=i=>now[i]&&!prev[i];
  [0,1,2,3].forEach(i=>{if(edge(i)&&mvs[i])BT[wk]=mvs[i]});
@@ -1180,16 +1181,16 @@ function startMv(f,id){const m=MV[id];if(!m||!canAct(f))return false;
 function tryHit(a,b,m){
  const dx=(b.x-a.x)*a.face;if(dx<-10)return;
  const reach=m.rch+(a.d.skills.includes('maaishi')?10:0);if(dx>reach)return;
- if(Math.abs(a.z-b.z)>.38&&!m.tr)return;if(b.state==='down')return;
- let d=m.dmg*(.6+a.d.st.chi/100)*(1-b.d.st.tough/320);
+ if(b.state==='down')return;if(b.state==='parry'&&b.t<=b.pw&&!m.ki){doParry(a,b);return}
+ let d=m.dmg*(.6+a.d.st.chi/100)*(1-b.d.st.tough/320)*(a.pt==='pow'?1.1:a.pt==='spd'?.95:1)*(b.state==='stun'?1.25:1);
  if(b.d.skills.includes('tetsu')&&m.lv==='mid')d*=.75;
  if(a.d.skills.includes('gyakkyo')&&a.hp/a.max<b.hp/b.max)d*=1.2;
  const y=fy(b)-(m.lv==='high'?120:m.lv==='low'?40:85)*.6;
  if(m.counter&&b.state==='atk'&&b.t<MV[b.mv].su*b.sc){d*=m.counter;pop('カウンター！',b.x,y-40,'#ffd84a',24)}
- const guarded=b.state==='guard'&&m.lv!=='low'&&!m.gb;
- if(guarded){d*=.2;b.ki=Math.min(100,b.ki+4);spark(b.x-a.face*18,y,'#7fd3ff');b.x+=a.face*5;thudS();pop('受け！',b.x,y-30,'#7fd3ff',18)}
- else if(m.lv==='low'&&b.state==='guard')d*=.7;
- d=Math.max(1,Math.round(d));b.hp-=d;a.landed=true;a.ki=Math.min(100,a.ki+(guarded?2:8));
+ const gm=b.state==='guard'&&!m.gb?(m.lv==='mid'?.5:(m.lv===(b.gl==='low'?'low':'high')?.2:1)):1,guarded=gm<1;
+ if(guarded){d*=gm;b.ki=Math.min(100,b.ki+4);spark(b.x-a.face*18,y,'#7fd3ff');b.x+=a.face*5;thudS();pop('ガード！',b.x,y-30,'#7fd3ff',18)}
+ 
+ d=Math.max(1,Math.round(d));b.hp-=d;a.landed=true;a.ki=Math.min(100,a.ki+(guarded?2:8)*(a.pt==='tec'?1.25:1));
  if(!guarded){
   a.combo=(a.comboT>0?a.combo:0)+1;a.comboT=70;if(a.combo>=2)pop(`${a.combo} HIT`,a.isMe?110:490,110,'#ff9e80',22);
   b.ki=Math.min(100,b.ki+5);const big=d>=b.max*.22;
@@ -1209,6 +1210,8 @@ function stepF(f,o){
   if(f.t>=su&&f.t<su+ac){f.x+=f.face*(m.jump?2.4:1.1);const n=m.hits||1,iv=ac/n,idx=Math.floor((f.t-su)/iv);if(f.hitN<=idx&&f.hitN<n){f.hitN++;tryHit(f,o,m)}}
   if(f.t>=su*.4&&f.t<su+ac){f.trail.push({x:f.x,z:f.z,face:f.face,p:m.pose});if(f.trail.length>3)f.trail.shift()}
   if(f.t>=su+ac+rc){f.trail=[];if(m.missDown&&!f.landed){f.state='down';f.t=0;f.downT=m.missDown;pop('かわされた！',f.x,fy(f)-150,'#9fc3e6',22)}else f.state='idle'}}
+ else if(f.state==='parry'){if(++f.t>=f.pw+16)f.state='idle'}
+ else if(f.state==='stun'){if(++f.t>=f.stunT)f.state='idle'}
  else if(f.state==='hit'){if(++f.t>=16)f.state='idle'}
  else if(f.state==='down'){if(++f.t>=f.downT)f.state='idle'}
  f.sta=Math.min(f.staMax,f.sta+(f.d.skills.includes('sanchin')?.5:.32)*(f.state==='guard'?.5:1));
@@ -1216,26 +1219,31 @@ function stepF(f,o){
  if(Math.abs(f.z-o.z)<.4&&Math.abs(f.x-o.x)<36&&f.state!=='down'&&o.state!=='down'){f.x-=f.face*1.5}
  f.x=Math.max(40,Math.min(560,f.x));f.z=Math.max(-1,Math.min(1,f.z));
 }
+function startParry(f){if(!canAct(f)||f.sta<4)return false;f.sta-=4;f.state='parry';f.t=0;whoosh();return true}
+function doParry(a,b){a.state='stun';a.t=0;a.stunT=44+(b.pt==='mnd'?16:0);a.trail=[];a.hitN=99;if(a.isMe)BT.want=null;else if(BT.o.pvp)BT.want2=null;
+ b.state='idle';b.t=0;b.ki=Math.min(100,b.ki+12);b.sta=Math.min(b.staMax,b.sta+14);
+ spark(b.x+b.face*16,fy(b)-60,'#7fd3ff',1);BT.hitstop=9;BT.zoom=1.1;BT.shake=4;chime();pop('さばき！',b.x,fy(b)-150,'#7fd3ff',34);pop('ぴよぴよ…',a.x,fy(a)-170,'#ffd84a',22)}
 function playerIn(f,sel){const two=sel===2,k=two?BT.keys2:BT.keys,p=two?BT.pk2:BT.pk,K=n=>k[n]||p[n];
  if(two){if(BT.want2&&canAct(f)){startMv(f,BT.want2);BT.want2=null}}else if(BT.want&&canAct(f)){startMv(f,BT.want);BT.want=null}
  if(!canAct(f))return;
- if(K('g')){f.state='guard';return}
- const dx=(K('r')?1:0)-(K('l')?1:0),dz=(K('d')?1:0)-(K('u')?1:0);
+ if(K('p')){if(!f.pH){f.pH=1;startParry(f)}return}else f.pH=0;
+ if(K('u')||K('d')){f.state='guard';f.gl=K('u')?'high':'low';return}
+ const dx=(K('r')?1:0)-(K('l')?1:0),dz=0;
  f.x+=dx*fspd(f);f.z+=dz*.05;f.state=(dx||dz)?'walk':'idle';if(dx||dz){f.walk+=.3;if(Math.random()<.15)BT.dust.push({x:f.x,y:fy(f),t:0})}
 }
 function aiIn(e,p){
  if(!canAct(e))return;const ai=e.ai,dist=Math.abs(p.x-e.x),L=e.lvl;
  if(p.state==='atk'){const pm=MV[p.mv];if(!ai.re&&p.t<pm.su*p.sc&&dist<pm.rch+24){ai.re=true;const r=Math.random();
-   if(r<.26+L*.5){if(!pm.tr&&Math.random()<.45){ai.dz=e.z>0?-1:1;ai.dx=0;ai.t=20}else{ai.guard=20}}}}else ai.re=false;
- if(ai.guard>0){ai.guard--;e.state='guard';return}
- if(ai.t>0){ai.t--;e.x+=ai.dx*fspd(e)*.85;e.z+=ai.dz*.045;e.state=(ai.dx||ai.dz)?'walk':'idle';if(ai.dx||ai.dz)e.walk+=.3;return}
+   if(r<.26+L*.5){if(!pm.ki&&Math.random()<.08+L*.3&&startParry(e)){return}ai.guard=20;ai.gl=pm.lv==='high'?'high':pm.lv==='low'?'low':(Math.random()<.5?'high':'low')}}}else ai.re=false;
+ if(ai.guard>0){ai.guard--;e.state='guard';e.gl=ai.gl||'high';return}
+ if(ai.t>0){ai.t--;e.x+=ai.dx*fspd(e)*.85;e.state=ai.dx?'walk':'idle';if(ai.dx)e.walk+=.3;return}
  e.state='idle';
  const g=e.d.skills.find(k=>MV[k]&&MV[k].ki&&MV[k].rch>=dist-4);
  if(g&&e.ki>=100&&Math.random()<.5){startMv(e,g);return}
- const us=e.d.skills.filter(k=>MV[k]&&!MV[k].ki&&MV[k].rch>=dist-4&&e.sta>=MV[k].cost&&(MV[k].tr||Math.abs(e.z-p.z)<.38));
+ const us=e.d.skills.filter(k=>MV[k]&&!MV[k].ki&&MV[k].rch>=dist-4&&e.sta>=MV[k].cost);
  if(us.length&&Math.random()<.32+L*.5){startMv(e,pick(us));return}
  if(dist>96){ai.dx=e.face;ai.t=R(8,16)}else if(Math.random()<.25){ai.dx=-e.face;ai.t=R(6,12)}else{ai.dx=0;ai.t=R(3,8)}
- ai.dz=Math.abs(p.z-e.z)>.3&&Math.random()<.65?Math.sign(p.z-e.z):(Math.random()<.12?pick([-1,1]):0);
+ ai.dz=0;
 }
 function finish(winner,how){if(BT.done)return;BT.done=true;BT.winner=winner;BT.how=how;winner.state='win';const l=winner===BT.me?BT.en:BT.me;if(l.state!=='down'){l.state='down';l.t=0;l.downT=9999}BT.slow=50;
  setTimeout(winner===BT.me?fanfareS:failS,300);setTimeout(()=>{if(typeof sayV==='function')sayV(winner.d.vid,'osu')},900)}
@@ -1261,10 +1269,11 @@ function step(){const {me,en}=BT;
 function closeFight(){const b=BT;cancelAnimationFrame(b.raf);window.removeEventListener('keydown',b.kd);window.removeEventListener('keyup',b.ku);
  document.getElementById('bt').hidden=true;BT=null;bgm('title');b.o.onEnd&&b.o.onEnd(b.winner===b.me,b.how,{hp:Math.max(0,b.me.hp)/b.me.max})}
 const fy=f=>272+f.z*26;
-function poseOf(f){switch(f.state){case 'guard':return ['guard','grit'];case 'hit':return ['hit','hurt'];case 'down':return ['down','hurt'];case 'win':return ['osu','smile'];
+function poseOf(f){switch(f.state){case 'guard':case 'parry':return ['guard','grit'];case 'stun':return ['hit','hurt'];case 'hit':return ['hit','hurt'];case 'down':return ['down','hurt'];case 'win':return ['osu','smile'];
  case 'atk':{const m=MV[f.mv];return f.t<m.su*f.sc*.45?['idle','grit']:[m.pose,'grit']}default:return ['idle','normal']}}
 function drawF(f){const ctx=BT.ctx,y=fy(f),s=(1+f.z*.1)*.6;const [p,e]=poseOf(f);const img=fsOf(f,p)||getSpr(f.d.art,p,e);
  ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(f.x,y+2,70*s,13*s,0,0,Math.PI*2);ctx.fill();
+ if(f.state==='stun'){ctx.save();ctx.font=`${Math.round(30*s)}px sans-serif`;ctx.textAlign='center';ctx.fillStyle='#ffd84a';for(let k=0;k<3;k++){const aa=f.t*.28+k*2.094;ctx.fillText('★',f.x+Math.cos(aa)*34*s*1.4,y-215*s+Math.sin(aa)*8)}ctx.restore()}
  const m=f.state==='atk'&&MV[f.mv];let face=f.face,jy=0;
  if(m&&m.spin&&f.t<m.su*f.sc*.7)face=-face;
  if(m&&m.jump){const tot=(m.su+m.ac)*f.sc;jy=Math.sin(Math.min(1,f.t/tot)*Math.PI)*48}
@@ -1364,7 +1373,7 @@ const SK={
   sanchin:{n:'三戦の呼吸',g:'s',cost:90,bp:5,d:'沖縄古流の呼吸法。スタミナが回復しやすい'},
   osu:{n:'押忍の心',g:'g',cost:200,bp:10,d:'倒れても一度だけ立ち上がる'},
   ushiromawashi:{n:'後ろ廻し蹴り',g:'g',cost:220,bp:12,d:'必殺技。踏み込んできた相手へのカウンター'},
-  kakato:{n:'かかと落とし',g:'g',cost:220,bp:12,d:'必殺技。受けの上からでも効く'},
+  kakato:{n:'かかと落とし',g:'g',cost:220,bp:12,d:'必殺技。ガードの上からでも効く'},
   domawashi:{n:'胴廻し回転蹴り',g:'g',cost:220,bp:12,d:'必殺技。当たれば大ダメージ、外せば大きな隙'},
   tobiushiro:{n:'飛び後ろ廻し蹴り',g:'g',cost:220,bp:12,d:'必殺技。演出最大のロマン技'},
   kyukyoku:{n:'究極の正拳突き',g:'g',cost:240,bp:14,d:'必殺技。床から拳まで一本の雷を通す一撃'},
