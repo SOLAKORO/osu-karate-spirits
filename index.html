@@ -1119,7 +1119,7 @@ function fightRT(o){
    <div class="pad"><button type="button" data-k="l" class="pl">◀</button><button type="button" data-k="r" class="pr2">▶</button></div>
    <div class="acts"><button type="button" data-k="u" class="gd">上段ガード<small>押し続ける</small></button><button type="button" data-k="d" class="gd">下段ガード<small>押し続ける</small></button><button type="button" data-k="p" class="gd prb">さばき<small>タイミング！</small></button>${mv.map(m=>`<button type="button" data-mv="${m}" class="mvb lv-${MV[m].lv}">${MV[m].n}<small>${MV[m].lv==='high'?'上段':MV[m].lv==='low'?'下段':'中段'}</small></button>`).join('')}${gold.map(m=>`<button type="button" data-mv="${m}" class="mvb gold">${MV[m].n}<small>必殺・気力MAX</small></button>`).join('')}</div>
   </div>
-  <div class="bt-help">◀▶で前後に動く。<b>上段・下段ガード</b>は押し続けて、相手の技の高さに合わせる（中段は半分だけ防げる）。<b>さばき</b>は、相手の技が当たる直前に押すと、技を流して相手を「ぴよぴよ」にできる！ はずすとスキができる。顔面への突きは反則なので、突きはボディ。<br>Joy-Con・コントローラー：スティック/十字キー上下でガード、${padMap||'Aで技'}、L/ZLでさばき、R/ZRで必殺。キーボード：←→で移動・↑↓でガード・Zでさばき・X・C・V・B・N・Mで技（画面のボタンの左から順）・スペースで必殺</div>`;
+  <div class="bt-help">◀▶で前後に動く。<b>上段・下段ガード</b>は押し続けて、相手の技の高さに合わせる（中段は半分だけ防げる）。<b>さばき</b>は、相手の技が当たる直前に押すと、技を流して相手を「ぴよぴよ」にできる！ はずすとスキができる。ぴよぴよ中に上段の技が当たると<b>技あり</b>、必殺技なら<b>一本</b>！ 顔面への突きは反則なので、突きはボディ。<br>Joy-Con・コントローラー：スティック/十字キー上下でガード、${padMap||'Aで技'}、L/ZLでさばき、R/ZRで必殺。キーボード：←→で移動・↑↓でガード・Zでさばき・X・C・V・B・N・Mで技（画面のボタンの左から順）・スペースで必殺</div>`;
  const mv2=o.pvp?o.en.skills.filter(k=>MV[k]&&!MV[k].ki).slice(0,6):[],gold2=o.pvp?o.en.skills.filter(k=>MV[k]&&MV[k].ki):[];
  if(o.pvp){const c1=ov.querySelector('.bt-ctl'),c2=c1.cloneNode(true);c2.classList.add(o.land?'p2l':'p2');if(o.land)c1.classList.add('p1l');
   const SW=o.land?{l:'l',r:'r'}:{l:'r',r:'l'};
@@ -1199,7 +1199,7 @@ function tryHit(a,b,m){
   spark(b.x-a.face*14,y,m.ki?'#ffd84a':'#ffffff',m.ki||big);BT.hitstop=m.ki?12:big?7:4;BT.shake=m.ki?16:big?9:5;if(m.ki){BT.zoom=1.18;hitS(1.4);shatterS()}else hitS(.7+d/30);
   if(Math.random()<.35)fvoice(b,'hit');
   pop(String(d),b.x+R(-10,10),y-10,'#ffefc0',18);
-  if(d>=b.max*.18||m.dmg>=12||(wasStun&&m.lv==='high')){b.waza++;if(b.waza>=2){pop('合わせ一本！',300,150,'#ff4b3a',44);finish(a,'合わせ一本')}else{pop(wasStun&&m.lv==='high'?'ぴよぴよに上段！ 技あり！':'技あり！',300,150,'#ffd84a',wasStun&&m.lv==='high'?32:40);if(typeof speakJa==='function')speakJa('技あり')}}
+  if(wasStun&&m.lv==='high'){b.waza++;if(b.waza>=2){pop('合わせ一本！',300,150,'#ff4b3a',44);finish(a,'合わせ一本')}else{pop(wasStun&&m.lv==='high'?'ぴよぴよに上段！ 技あり！':'技あり！',300,150,'#ffd84a',wasStun&&m.lv==='high'?32:40);if(typeof speakJa==='function')speakJa('技あり')}}
  }
  if(b.hp<=0&&!BT.done){if(b.osu&&!b.osuUsed){b.osuUsed=true;b.hp=Math.round(b.max*.3);b.state='hit';pop('押忍の心！',b.x,fy(b)-150,'#ffd84a',28);fvoice(b,'osu')}else{b.hp=0;pop('一本！',300,150,'#ff4b3a',52);finish(a,'一本')}}
  b.x=Math.max(40,Math.min(560,b.x));
@@ -1450,6 +1450,14 @@ const SUP_FX={higa:'稽古の疲労−10',sakura:'ポイント+3、たまにや�
 const RATES=[['SSR',5],['SR',20],['R',35],['N',40]];
 const RORD='SSR SR R N';
 const TYPE_N={...Object.fromEntries(TK.map(k=>[k,TYPES[k].n])),sup:'援'};
+const GACHA_IDS=['makita','maho','nijito','kanata','kirato','hinata','taisei','bashin','gaoto','kaita','akihito','raito','akari','saaya','kaito','ryusei','ryoto','atsushi','rana','rami','rino','swan','shunshun'];
+const GSET=new Set(GACHA_IDS),isGacha=id=>GSET.has(id);
+const FIXEDSET=new Set(Object.keys(C).filter(id=>!GSET.has(id)&&!C[id].hide));
+const STAR_MAX=6,STAR_NEED=[1,1,1,2,2,2],SELL=60;
+const starRar=s=>s>=6?'SSR':s>=4?'SR':s>=2?'R':'N';
+GACHA_IDS.forEach(id=>{const c=C[id];c.r0=c.r;Object.defineProperty(c,'r',{configurable:true,enumerable:true,get(){try{return starRar((G&&G.col&&G.col[id])||0)}catch(e){return 'N'}}})});
+const GW={N:10,R:5,SR:2},gw=id=>GW[C[id].r0]||10;
+const BOND0=[5,15,30,45],TIERMUL=[1,1.05,1.1,1.18];
 const POOL=r=>Object.keys(C).filter(id=>C[id].r===r&&!C[id].fixed&&!C[id].hide);
 
 /* ----- written exam (4択)。内容は一般的な空手の知識。道場の決まりに合わせて直せます ----- */
@@ -1533,11 +1541,16 @@ function fresh(){return {screen:'title',stones:5000,col:{kokoro:0,kizuna:0},slot
 /* Save data lives in TWO places: this browser (localStorage) and the artifact database (per-viewer private doc),
    so republishing the page or opening it in another browser never loses progress. */
 const LEGACY=['kumite-densetsu-v2'];
+/* セーブの移行: 凸→☆。道場生は☆、館長たちは固定の仲間。主人公の見た目変更は廃止 */
+function migrate(g){if(!g)return g;g.col=g.col||{};g.dup=g.dup||{};
+  if((g.ver||1)<2){const FL={N:0,R:2,SR:4,SSR:6};for(const id of Object.keys(g.col)){if(!C[id])continue;if(GSET.has(id))g.col[id]=Math.max(Math.min(STAR_MAX,g.col[id]||0),FL[C[id].r0]||0);else g.col[id]=0}g.ver=2}
+  for(const id of FIXEDSET)if(g.col[id]===undefined)g.col[id]=0;
+  if(g.me)g.me.look='self';return g}
 function load(){try{const s=localStorage.getItem(KEY);if(s)return JSON.parse(s)}catch(e){}
   for(const k of LEGACY){try{const s=localStorage.getItem(k);if(s){const o=JSON.parse(s);if(o&&o.col)return o}}catch(e){}}return null}
 let DBREF=null,dbTimer=null,dbBusy=false,dbSig='';
 const sigOf=()=>{try{return JSON.stringify(G,(k,v)=>k==='_t'?undefined:v)}catch(e){return ''}};
-const meaningful=()=>!!(G&&(G.run||(G.slots&&G.slots.some(Boolean))||(G.roster&&G.roster.length)||Object.keys(G.col||{}).length>2||G.stones!==5000));
+const meaningful=()=>!!(G&&(G.run||(G.slots&&G.slots.some(Boolean))||(G.roster&&G.roster.length)||Object.keys(G.col||{}).filter(id=>!FIXEDSET.has(id)).length>0||G.stones!==5000));
 /* three training slots: G.run / G.me always mirror the active slot (G.slot); slots[] keeps all three */
 const cloneJ=o=>JSON.parse(JSON.stringify(o));
 function syncSlot(){if(G.slot>=0&&G.slot<3){G.slots[G.slot]=G.run?{run:G.run,me:cloneJ(G.me)}:null}}
@@ -1548,7 +1561,7 @@ function save(){try{G._t=Date.now();syncSlot();localStorage.setItem(KEY,JSON.str
 function dbQueue(){if(!DBREF)return;clearTimeout(dbTimer);dbTimer=setTimeout(dbFlush,1500)}
 async function dbFlush(){if(!DBREF||dbBusy||!G)return;const s=sigOf();if(!s||s===dbSig||s.length>240000||!meaningful())return;dbBusy=true;try{G._t=G._t||Date.now();await DBREF.set({t:G._t,json:JSON.stringify(G)});dbSig=s}catch(e){}dbBusy=false;if(sigOf()!==dbSig)dbQueue()}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)dbFlush()});
-function adoptSave(r){G=r;const f=fresh();for(const k in f)if(G[k]===undefined)G[k]=f[k];if(!G.me.name)G.me.name=P()==='kizuna'?'きずな':'こころ';normSlots();refreshNames();if((G.screen==='main'||G.screen==='reg')&&!G.run)G.screen='title';normDeck();try{localStorage.setItem(KEY,JSON.stringify(G))}catch(e){}dbSig=sigOf();render()}
+function adoptSave(r){G=r;const f=fresh();for(const k in f)if(G[k]===undefined)G[k]=f[k];migrate(G);if(!G.me.name)G.me.name=P()==='kizuna'?'きずな':'こころ';normSlots();refreshNames();if((G.screen==='main'||G.screen==='reg')&&!G.run)G.screen='title';normDeck();try{localStorage.setItem(KEY,JSON.stringify(G))}catch(e){}dbSig=sigOf();render()}
 async function dbInit(){try{const cl=window.claude;if(!cl||!cl.use)return;const [u,db]=await Promise.all([cl.use('user'),cl.use('db')]);const id=u&&await u.id();if(!db||!id)return;
   DBREF=db.doc('data/users/'+id+'/save');const snap=await DBREF.get();const lt=(G&&G._t)||0;
   if(snap.exists){const d=snap.data()||{};let r=null;try{r=JSON.parse(d.json)}catch(e){}
@@ -1564,7 +1577,7 @@ const PN=()=>PS();
 const PART=()=>P()==='kizuna'?'kokoro':'kizuna';
 const PARTN=()=>C[PART()].n;
 function meLook(){const l=G.me.look;if(l&&l!=='self'&&C[l])return {cls:'t-'+C[l].t};return P()==='kizuna'?{cls:'t-me'}:{cls:'t-me2'}}
-function normDeck(){const rest=G.deck.filter(id=>id!==P()&&id!==PART()&&G.col[id]!==undefined);G.deck=[PART(),...rest].slice(0,6)}
+function normDeck(){G.me.look='self';const rest=G.deck.filter(id=>id!==P()&&id!==PART()&&G.col[id]!==undefined);G.deck=[PART(),...rest].slice(0,6)}
 const nameOf=w=>w==='me'?PN():w&&C[w]?C[w].n:(w||'');
 
 function refreshNames(){const cn=PS()+(P()==='kizuna'?'くん':'ちゃん');
@@ -1621,8 +1634,10 @@ function bigCard(id,isNew){const c=C[id],k=CARD[id]||{p:'stand',e:'smile',shot:'
 const rk=v=>v>=110?'S':v>=95?'A':v>=80?'B':v>=65?'C':v>=50?'D':v>=35?'E':v>=20?'F':'G';
 const monthOf=t=>((3+t)%12)+1;
 const gradeOf=t=>Math.min(6,Math.floor(t/12)+1);
-const lb=id=>G.col[id]||0;
-function cardHTML(id,extra='',isNew=false){const c=C[id];return `<div class="card ${c.r} ${extra}">${av(id,40)}<div class="info"><div class="nm">${c.n}</div><div class="meta">${c.cat}・${TYPE_N[c.t]}</div>${lb(id)?`<div class="lb">${'◆'.repeat(lb(id))} ${lb(id)}凸</div>`:''}</div><span class="rar">${c.r}</span>${isNew?'<span class="new">NEW</span>':''}</div>`}
+const lb=id=>isGacha(id)?(G.col[id]||0):0,tierOf=id=>({N:0,R:1,SR:2,SSR:3})[C[id].r]||0;
+const starsOf=id=>{const n=Math.min(STAR_MAX,G.col[id]||0);return '★'.repeat(n)+'☆'.repeat(STAR_MAX-n)};
+const starLine=id=>{const n=G.col[id]||0;return `${starsOf(id)}　${n>=STAR_MAX?'MAX':'次の★まで あと'+(STAR_NEED[n]-((G.dup&&G.dup[id])||0))+'枚'}`};
+function cardHTML(id,extra='',isNew=false){const c=C[id];return `<div class="card ${c.r} ${extra}">${av(id,40)}<div class="info"><div class="nm">${c.n}</div><div class="meta">${c.cat}・${TYPE_N[c.t]}</div>${isGacha(id)?`<div class="lb">${starsOf(id)}</div>`:''}</div><span class="rar">${c.r}</span>${isNew?'<span class="new">NEW</span>':''}</div>`}
 function log(msg){G.run.log.unshift(msg);G.run.log=G.run.log.slice(0,4)}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function logoHTML(cls){return `<div class="logo ${cls||''}"><img src="assets/logo.webp" alt="押忍！空手スピリッツ" draggable="false"><i class="shine"></i></div>`}
@@ -1719,11 +1734,12 @@ function cutin(type){ // training cut-in with the protagonist
 }
 
 /* ================= gacha ================= */
-function roll(minSR){let x=Math.random()*100,r='N',acc=0;for(const [k,p] of RATES){acc+=p;if(x<acc){r=k;break}}if(minSR&&(r==='R'||r==='N'))r='SR';return pick(POOL(r))}
+function roll(prefNew){let ids=GACHA_IDS;if(prefNew){const nw=ids.filter(id=>!(id in G.col));if(nw.length)ids=nw}const tot=ids.reduce((a,id)=>a+gw(id),0);let x=Math.random()*tot;for(const id of ids){x-=gw(id);if(x<0)return id}return ids[ids.length-1]}
+const ratesHTML=()=>{const tot=GACHA_IDS.reduce((a,id)=>a+gw(id),0);return [[10,'よく出る'],[5,'ふつう'],[2,'出にくい']].map(([w,l])=>{const ids=GACHA_IDS.filter(id=>gw(id)===w);return ids.length?`<tr><td>${l}</td><td class="small">${ids.map(id=>`<span style="${id in G.col?'':'opacity:.5'}">${C[id].n}</span>`).join('、')}</td><td>1人 ${(w/tot*100).toFixed(1)}%</td></tr>`:''}).join('')}
 function pull(n){
-  const cost=n===10?1500:150;if(G.stones<cost)return;
+  const cost=n===10?900:100;if(G.stones<cost)return;
   G.stones-=cost;const res=[];for(let i=0;i<n;i++)res.push(roll(n===10&&i===9));
-  const newIds=[];res.forEach(id=>{if(id in G.col)G.col[id]=Math.min(4,G.col[id]+1);else{G.col[id]=0;newIds.push(id)}});save();
+  const newIds=[];G.dup=G.dup||{};G.pullSold={};G.pullUp=[];res.forEach(id=>{if(!(id in G.col)){G.col[id]=0;newIds.push(id)}else if((G.col[id]||0)>=STAR_MAX){G.stones+=SELL;G.pullSold[id]=(G.pullSold[id]||0)+SELL}else{G.dup[id]=(G.dup[id]||0)+1;if(G.dup[id]>=STAR_NEED[G.col[id]]){G.col[id]++;G.dup[id]=0;G.pullUp.push(id)}}});save();
   const done=()=>{G.pulled=res;G.newIds=newIds;save();render();bgm('title');const best=res.some(id=>C[id].r==='SSR')?2:res.some(id=>C[id].r==='SR')?1:0;setTimeout(best===2?fanfareS:best===1?chime:okS,150)};
   if(G.fxOn)gachaFX(res).then(()=>reveal(res,newIds)).then(done);else done();
 }
@@ -2096,7 +2112,7 @@ async function opening(){
 function startRun(){
   if(G.slot<0||G.slot>2){const i=G.slots.findIndex(s=>!s);G.slot=i<0?0:i}
   normDeck();refreshNames();
-  const bond={};G.deck.forEach(id=>bond[id]=(id===PART()?20:5)+lb(id)*10);
+  const bond={};G.deck.forEach(id=>bond[id]=id===PART()?20:BOND0[tierOf(id)]);
   G.run={t:0,st:{tai:10,chi:8,spd:10,flex:12,tough:8,waza:6,maai:6,kata:8,kiryoku:10,rei:12},pt:{body:20,tech:20,mind:20},
     mot:2,fat:0,belt:0,skills:['seiken'],kotsu:{},bond,ev:{},best:false,rep:0,kanban:true,inj:0,exams:0,quizOK:0,wins:0,
     cls:0,natQ:false,worldQ:false,trophies:[],tal:makeTalent(),yp:{},log:['小学1年生の春。空心道場での6年間が始まった。目標は6年生までに初段！'],assign:{},sel:null,choco:0,chat:null};
@@ -2124,7 +2140,7 @@ function assign(){
 function calc(type){
   const r=G.run,T=TYPES[type],ids=r.assign[type]||[];const camp=monthOf(r.t)===8;
   let mult=MOTMUL[r.mot]*(1+.08*ids.length);const fr=[];
-  ids.forEach(id=>{mult*=1+.05*lb(id);if(C[id].t===type&&r.bond[id]>=80)fr.push(id)});
+  ids.forEach(id=>{mult*=TIERMUL[tierOf(id)];if(C[id].t===type&&r.bond[id]>=80)fr.push(id)});
   mult*=Math.pow(1.35,fr.length);mult=Math.min(mult,MULTCAP);if(camp)mult*=1.5;mult*=PT_RATE;
   const g={};for(const k in T.gain)g[k]=Math.max(1,Math.round((T.gain[k]+ids.length*3)*mult));
   if(ids.includes('nana'))g.body=(g.body||0)+4;if(ids.includes('sakura'))for(const k in g)g[k]+=3;
@@ -2199,7 +2215,7 @@ function cardEvent(id,next){
     show({lines:[{who:id,t:c.L[0]},{who:'me',t:reply}],who:id,sub:c.cat,html:`<div class="gain">${PTN[cat]}ポイント+10　絆+6</div>${step===2?'<div class="small mute">もっと仲良くなると（絆60）、最後のイベントが起きる</div>':''}`,then:next});return}
   let g='';
   if(step===0){r.bond[id]=clamp(r.bond[id]+12,0,100);addPt({[cat]:15});g=`${PTN[cat]}ポイント+15　絆+12`}
-  else if(step===1){r.kotsu[c.sk]=Math.min(3,(r.kotsu[c.sk]||0)+1);addPt({[cat]:10});g=`「${SK[c.sk].n}」のコツ Lv${r.kotsu[c.sk]}　${PTN[cat]}ポイント+10`}
+  else if(step===1){r.kotsu[c.sk]=Math.min(3,(r.kotsu[c.sk]||0)+(tierOf(id)>=2?2:1));addPt({[cat]:10});g=`「${SK[c.sk].n}」のコツ Lv${r.kotsu[c.sk]}　${PTN[cat]}ポイント+10`}
   else{if(SK[c.sk].g==='g'&&c.r==='SSR'){if(!r.skills.includes(c.sk))r.skills.push(c.sk);g=`必殺技「${SK[c.sk].n}」を習得した！`;chime()}
     else{r.kotsu[c.sk]=Math.min(3,(r.kotsu[c.sk]||0)+2);addPt({[cat]:25});g=`「${SK[c.sk].n}」のコツ Lv${r.kotsu[c.sk]}　${PTN[cat]}ポイント+25`}
     if(id===PART())r.bond[id]=clamp(r.bond[id]+15,0,100)}
@@ -2702,12 +2718,12 @@ function vSelect(){
 function vGacha(){
   const owned=Object.keys(G.col).filter(id=>!C[id].hide).sort((a,b)=>RORD.indexOf(C[a].r)-RORD.indexOf(C[b].r));const all=Object.keys(C).filter(id=>!C[id].fixed&&!C[id].hide);
   return `<div class="hud"><button class="btn sm" data-a="go" data-v="title">← もどる</button><h2 style="font-size:20px">稽古パートナー召集</h2><span class="left stones num">${G.stones}</span></div>
-  <div class="row"><button class="btn" data-a="pull" data-v="1" ${G.stones<150?'disabled':''}>1回　150</button><button class="btn main" data-a="pull" data-v="10" ${G.stones<1500?'disabled':''}>10連　1500</button></div>
-  ${G.pulled.length?`<div class="panel"><div class="label" style="margin-bottom:8px">召集結果</div><div class="cards">${G.pulled.map((id,i)=>`<div class="reveal" style="animation-delay:${i*70}ms">${cardHTML(id,'',G.newIds.includes(id))}</div>`).join('')}</div></div>`:''}
-  <div class="panel"><div class="label" style="margin-bottom:6px">召集できる仲間（全${all.length}人）と排出確率</div>
-   <table class="rates num">${RATES.map(([k,p])=>`<tr><td>${k}</td><td class="small">${POOL(k).map(id=>`<span style="${id in G.col?'':'opacity:.5'}">${C[id].n}</span>`).join('、')}</td><td>${p}%</td></tr>`).join('')}</table>
-   <div class="small mute" style="margin-top:6px">10連は10枚目SR以上確定。同じキャラが出ると「凸」が上がります（最大4凸）。うすい名前は未所持。</div></div>
-  <div class="panel"><div class="label" style="margin-bottom:8px">所持キャラ ${owned.length}/${all.length+2}</div><div class="cards">${owned.map(id=>cardHTML(id)).join('')}</div></div>
+  <div class="row"><button class="btn" data-a="pull" data-v="1" ${G.stones<100?'disabled':''}>1回　100</button><button class="btn main" data-a="pull" data-v="10" ${G.stones<900?'disabled':''}>10連　900</button></div>
+  ${G.pulled.length?`<div class="panel"><div class="label" style="margin-bottom:8px">召集結果</div><div class="cards">${G.pulled.map((id,i)=>`<div class="reveal" style="animation-delay:${i*70}ms">${cardHTML(id,'',G.newIds.includes(id))}${(G.pullUp||[]).includes(id)?'<div class="small gain">★アップ！</div>':''}${(G.pullSold||{})[id]?'<div class="small mute">★MAXなので売却 +'+G.pullSold[id]+'</div>':''}</div>`).join('')}</div></div>`:''}
+  <div class="panel"><div class="label" style="margin-bottom:6px">召集できる道場生（全${GACHA_IDS.length}人）と出やすさ</div>
+   <table class="rates num">${ratesHTML()}</table>
+   <div class="small mute" style="margin-top:6px">道場のみんな（N）が出ます。同じ子が出ると★が増えて、R→SR→SSRと成長します（★6でMAX）。10連の10枚目は、まだ持っていない子が出やすくなります。★MAXの子がまた出ると、自動で売却して石が${SELL}もらえます。うすい名前は未所持。</div></div>
+  <div class="panel"><div class="label" style="margin-bottom:8px">所持キャラ ${owned.filter(isGacha).length}/${GACHA_IDS.length}</div><div class="cards">${owned.filter(isGacha).map(id=>cardHTML(id)).join('')}</div></div>
   <button class="btn main" data-a="go" data-v="deck">デッキ編成へ</button>`;
 }
 function vDeck(){
@@ -2756,12 +2772,12 @@ function vReg(){
   <div class="panel" style="display:flex;gap:16px;align-items:center"><div class="big rk-${grade}">${grade}</div><div><div class="label">総合評価</div><div class="num">${pty.n}　${beltChip(r.belt)}</div><div class="small mute">${pty.d}（能力合計 ${sum}）</div><div class="small mute">審査 ${r.exams}回・組手の勝ち ${r.wins}回・筆記の正解 ${r.quizOK}問</div></div></div>
   <div class="panel" style="display:flex;flex-direction:column;gap:10px"><div class="label">選手登録</div>
     <label class="small" for="rnm">選手の名前</label><input id="rnm" class="inp" maxlength="8" value="${G.me.name||PS()}">
-    <div class="label">見た目</div><div class="looks"><button class="look ${G.me.look==='self'?'on':''}" data-a="rlook" data-v="self"><span class="av ${P()==='kizuna'?'t-me':'t-me2'}" style="--s:48px">${photo(P(),'face')}</span>そのまま</button>${owned.filter(id=>id!==P()).map(id=>`<button class="look ${G.me.look===id?'on':''}" data-a="rlook" data-v="${id}">${av(id,48)}${C[id].n}</button>`).join('')}</div>
+    
     <button class="btn ${ptSum>0?'main':''}" data-a="stat">残りのポイントで能力アップ<small class="bsub">${ptSum}pt</small></button>
   </div>
   <div class="panel"><div class="stats">${STATS.map(([k,n])=>{const x=rk(s[k]);return `<div class="st"><span>${n}</span><span class="rk rk-${x}">${x}</span><div class="bar"><i style="--w:${s[k]/120*100}%;--c:${PTC[PCAT[k]]}"></i></div><span class="v num">${s[k]}</span></div>`}).join('')}</div></div>
   ${(r.trophies||[]).length?`<div class="panel"><div class="label" style="margin-bottom:6px">大会の成績</div><div class="troph">${r.trophies.map(t=>`<span>${/優勝/.test(t)&&!/準優勝/.test(t)?"🏆":/準優勝/.test(t)?"🥈":"🥉"} ${t}</span>`).join("")}</div></div>`:""}<div class="panel"><div class="label" style="margin-bottom:6px">覚えた技</div><div class="row">${r.skills.map(k=>`<span class="tag" style="--c:${SKC[SK[k].g]}">${SK[k].n}</span>`).join('')}</div></div>
-  <button class="btn main" data-a="register">この選手を登録する<small class="bsub">ガチャ石 +600</small></button>`;
+  <button class="btn main" data-a="register">この選手を登録する<small class="bsub">ガチャ石 +3000</small></button>`;
 }
 function vRoster(){
   return `<div class="hud"><button class="btn sm" data-a="go" data-v="title">← もどる</button><h2 style="font-size:20px">選手名鑑</h2></div>
@@ -2783,7 +2799,7 @@ function vKumite(){const ops=Object.keys(G.col).filter(id=>C[id].t!=='sup'&&id!=
 
 /* ================= 2人対戦（同じ画面で1P vs 2P） ================= */
 const PV={a:'kizuna',b:'kokoro',pw:70,land:1};
-function pvIds(){return Object.keys(C).filter(id=>!C[id].hide&&ART[id]&&C[id].n)}
+function pvIds(){return Object.keys(C).filter(id=>!C[id].hide&&ART[id]&&C[id].n&&(GSET.has(id)||id==='kizuna'||id==='kokoro'))}
 const pvR=v=>/^r\d+$/.test(v)?G.roster[+v.slice(1)]:null;
 function pvList(){return [...G.roster.map((f,i)=>'r'+i),...pvIds()]}
 const pvName=v=>{const f=pvR(v);return f?f.name:(C[v]?C[v].n:v)};
@@ -2815,12 +2831,12 @@ function vCards(){const all=cardList(),have=id=>id in G.col,n=all.filter(have).l
   <div class="cards">${all.map(id=>have(id)?`<button data-a="cardv" data-v="${id}" style="display:block;padding:0;text-align:left">${cardHTML(id)}</button>`:`<div class="card ${C[id].r} dim" style="opacity:.45"><span class="av" style="--s:40px;display:grid;place-items:center">？</span><div class="info"><div class="nm">？？？</div><div class="meta">未入手</div></div><span class="rar">${C[id].r}</span></div>`).join('')}</div>
   <div class="row"><button class="btn" data-a="go" data-v="gacha">ガチャへ</button></div>`}
 function cardDetail(id){const c=C[id];if(!c||!(id in G.col))return;clickS();
-  const ty=TYPES[c.t==='sup'?'shin':c.t],sk=SK[c.sk],isSSR=c.r==='SSR',cat=mainCat(id),gain=ty.gain;
+  const ty=TYPES[c.t==='sup'?'shin':c.t],sk=SK[c.sk],isSSR=c.r==='SSR'&&SK[c.sk]&&SK[c.sk].g==='g',cat=mainCat(id),gain=ty.gain;
   const bars=Object.keys(PTN).map(k=>`<div style="display:flex;align-items:center;gap:6px;font-size:12px"><b style="width:18px;color:${PTC[k]}">${PTN[k]}</b><div style="flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden"><i style="display:block;height:100%;width:${Math.min(100,(gain[k]||0)*4)}%;background:${PTC[k]}"></i></div><span class="num" style="width:26px;text-align:right">${gain[k]||0}</span></div>`).join('');
   const ph=photo(id,'full')||artSVG(artOf(id),'idle','normal','full');
   const need=isSSR?'必殺技「'+(sk?sk.n:'')+'」を習得':'「'+(sk?sk.n:'')+'」のコツ Lv+2';
   const html=`<div style="display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:start"><div style="height:150px;display:flex;justify-content:center">${ph}</div>
-    <div><div class="small mute">${c.cat}　${c.r}</div><div style="font-weight:800;font-size:18px">${c.n}</div><div class="small">得意：<b>${TYPE_N[c.t]}</b>${c.t==='sup'?'':'（'+ty.train+'）'}</div><div class="small">絆　${lb(id)?'◆'.repeat(lb(id))+' '+lb(id)+'凸':'まだ凸なし'}</div></div></div>
+    <div><div class="small mute">${c.cat}　${c.r}</div><div style="font-weight:800;font-size:18px">${c.n}</div><div class="small">得意：<b>${TYPE_N[c.t]}</b>${c.t==='sup'?'':'（'+ty.train+'）'}</div><div class="small">${isGacha(id)?starLine(id):'固定の仲間'}</div><div class="small mute">はじめの友情度 ${id===PART()?20:BOND0[tierOf(id)]}・稽古の倍率 ×${TIERMUL[tierOf(id)]}</div></div></div>
     <div><div class="label" style="margin:6px 0 4px">稽古でのポイント（得意稽古のとき）</div><div style="display:flex;flex-direction:column;gap:4px">${bars}</div></div>
     <div class="panel"><div class="label" style="margin-bottom:4px">育成で覚えられる技</div><b>${sk?sk.n:'―'}</b><div class="small mute">${sk?sk.d:''}</div></div>
     <div class="panel small"><div class="label" style="margin-bottom:4px">育成イベント（3段階）</div>
@@ -2875,12 +2891,12 @@ const A={
   register:()=>{const r=G.run,nm=$('#rnm');G.me.name=(nm&&nm.value.trim())||PS();
     const s=r.st;const grade=gradeOfSt(s);
     G.roster.unshift({name:G.me.name,base:P(),look:G.me.look,art:meArt(),st:{...s},skills:[...r.skills],belt:r.belt,grade,type:playerType(s),trophies:[...(r.trophies||[])]});G.roster=G.roster.slice(0,20);
-    G.stones+=600;G.run=null;G.screen='roster';save();render();fanfareS();sayV('me','osu')},
+    G.stones+=3000;G.run=null;G.screen='roster';save();render();fanfareS();sayV('me','osu')},
 };
 app.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.disabled)return;A[b.dataset.a]&&A[b.dataset.a](b.dataset.v)});
 
 /* ================= boot ================= */
-const boot=d=>{G=(d&&d.G)||load()||fresh();const f=fresh();for(const k in f)if(G[k]===undefined)G[k]=f[k];
+const boot=d=>{G=(d&&d.G)||load()||fresh();const f=fresh();for(const k in f)if(G[k]===undefined)G[k]=f[k];migrate(G);
   if(!G.me.name)G.me.name=P()==='kizuna'?'きずな':'こころ';normSlots();refreshNames();
   if(G.screen==='main'&&!G.run)G.screen='title';if(G.screen==='reg'&&!G.run)G.screen='title';normDeck();probe();render();dbInit();launchOp()};
 window.claude?.hot?.snapshot?.(()=>({G}));
