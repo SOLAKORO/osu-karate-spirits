@@ -1135,7 +1135,7 @@ function fightRT(o){
  const cv=ov.querySelector('canvas'),ctx=cv.getContext('2d');const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=600*dpr;cv.height=330*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
  const me=mkF(o.me,true,190),en=mkF(o.en,false,410);
  const keys={l:0,r:0,u:0,d:0,g:0,p:0},keys2={l:0,r:0,u:0,d:0,g:0,p:0};
- BT={o,me,en,ctx,dpr,keys,pk:{},want:null,fx:[],pops:[],dust:[],cut:null,hitstop:0,slow:0,sub:0,timer:(o.time||60)*60,clk:o.clock||1,done:false,doneT:0,shake:0,zoom:1,start:200,raf:0,gold,mv,prevBtn:[],bg:null,keys2,want2:null,pk2:{},prevBtn2:[],mv2,gold2};
+ BT={o,me,en,ctx,dpr,keys,pk:{},want:null,fx:[],pops:[],dust:[],cut:null,hitstop:0,slow:0,sub:0,timer:(o.time||30)*60,clk:o.clock||3,done:false,doneT:0,shake:0,zoom:1,start:200,raf:0,gold,mv,prevBtn:[],bg:null,keys2,want2:null,pk2:{},prevBtn2:[],mv2,gold2};
  if(o.bg){const b0=BT,im=new Image();im.onload=()=>{b0.bg=im};im.src=`assets/bg/${o.bg}.webp`}
  ov.querySelectorAll('[data-k]').forEach(b=>{const k=b.dataset.k;const on=e=>{e.preventDefault();keys[k]=1;b.classList.add('on')};const off=()=>{keys[k]=0;b.classList.remove('on')};
   b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointerleave',off);b.addEventListener('pointercancel',off);b.addEventListener('contextmenu',e=>e.preventDefault())});
@@ -1181,8 +1181,8 @@ function startMv(f,id){const m=MV[id];if(!m||!canAct(f))return false;
 function tryHit(a,b,m){
  const dx=(b.x-a.x)*a.face;if(dx<-10)return;
  const reach=m.rch+(a.d.skills.includes('maaishi')?10:0);if(dx>reach)return;
- if(b.state==='down')return;if(b.state==='parry'&&b.t<=b.pw&&!m.ki){doParry(a,b);return}
- let d=m.dmg*(.6+a.d.st.chi/100)*(1-b.d.st.tough/320)*(a.pt==='pow'?1.1:a.pt==='spd'?.95:1)*(b.state==='stun'?1.25:1);
+ if(b.state==='down')return;if(b.state==='parry'&&b.t<=b.pw&&!m.ki){doParry(a,b);return}const wasStun=b.state==='stun';
+ let d=m.dmg*(.6+a.d.st.chi/100)*(1-b.d.st.tough/320)*(a.pt==='pow'?1.1:a.pt==='spd'?.95:1)*(b.state==='stun'?1.25:1)*(m.ki?1:.7);
  if(b.d.skills.includes('tetsu')&&m.lv==='mid')d*=.75;
  if(a.d.skills.includes('gyakkyo')&&a.hp/a.max<b.hp/b.max)d*=1.2;
  const y=fy(b)-(m.lv==='high'?120:m.lv==='low'?40:85)*.6;
@@ -1192,14 +1192,14 @@ function tryHit(a,b,m){
  
  d=Math.max(1,Math.round(d));b.hp-=d;a.landed=true;a.ki=Math.min(100,a.ki+(guarded?2:8)*(a.pt==='tec'?1.25:1));
  if(!guarded){
-  a.combo=(a.comboT>0?a.combo:0)+1;a.comboT=70;if(a.combo>=2)pop(`${a.combo} HIT`,a.isMe?110:490,110,'#ff9e80',22);
+  if(BT.ext&&!BT.done){spark(b.x-a.face*14,y,'#ffd84a',1);pop('延長戦決着！',300,150,'#ff4b3a',44);finish(a,'延長');return}if(wasStun&&m.ki&&!BT.done){spark(b.x-a.face*14,y,'#ffd84a',1);pop('ぴよぴよに必殺！',b.x,fy(b)-150,'#ffd84a',30);pop('一本！',300,150,'#ff4b3a',52);b.hp=0;finish(a,'一本');return}a.combo=(a.comboT>0?a.combo:0)+1;a.comboT=70;if(a.combo>=2)pop(`${a.combo} HIT`,a.isMe?110:490,110,'#ff9e80',22);
   b.ki=Math.min(100,b.ki+5);const big=d>=b.max*.22;
   b.state=(m.down||big)?'down':'hit';b.t=0;b.downT=m.down||54;b.x+=a.face*(m.push||8);
   if(m.lv==='low')b.slow=160;if(m.heal)a.hp=Math.min(a.max,a.hp+m.heal);
   spark(b.x-a.face*14,y,m.ki?'#ffd84a':'#ffffff',m.ki||big);BT.hitstop=m.ki?12:big?7:4;BT.shake=m.ki?16:big?9:5;if(m.ki){BT.zoom=1.18;hitS(1.4);shatterS()}else hitS(.7+d/30);
   if(Math.random()<.35)fvoice(b,'hit');
   pop(String(d),b.x+R(-10,10),y-10,'#ffefc0',18);
-  if(d>=b.max*.18){b.waza++;if(b.waza>=2){pop('合わせ一本！',300,150,'#ff4b3a',44);finish(a,'合わせ一本')}else{pop('技あり！',300,150,'#ffd84a',40);if(typeof speakJa==='function')speakJa('技あり')}}
+  if(d>=b.max*.18||m.dmg>=12||(wasStun&&m.lv==='high')){b.waza++;if(b.waza>=2){pop('合わせ一本！',300,150,'#ff4b3a',44);finish(a,'合わせ一本')}else{pop(wasStun&&m.lv==='high'?'ぴよぴよに上段！ 技あり！':'技あり！',300,150,'#ffd84a',wasStun&&m.lv==='high'?32:40);if(typeof speakJa==='function')speakJa('技あり')}}
  }
  if(b.hp<=0&&!BT.done){if(b.osu&&!b.osuUsed){b.osuUsed=true;b.hp=Math.round(b.max*.3);b.state='hit';pop('押忍の心！',b.x,fy(b)-150,'#ffd84a',28);fvoice(b,'osu')}else{b.hp=0;pop('一本！',300,150,'#ff4b3a',52);finish(a,'一本')}}
  b.x=Math.max(40,Math.min(560,b.x));
@@ -1264,7 +1264,11 @@ function step(){const {me,en}=BT;
   return}
  if(BT.done){BT.doneT++;if(BT.doneT===150)closeFight();return}
  pollPad();if(BT.o.pvp){playerIn(me,1);playerIn(en,2)}else{playerIn(me);aiIn(en,me)}stepF(me,en);stepF(en,me);
- if(--BT.timer<=0){const w=me.hp/me.max>=en.hp/en.max?me:en;pop('判定！',300,150,'#ffffff',44);finish(w,'判定')}
+ if(--BT.timer<=0){const hm=me.hp/me.max,he=en.hp/en.max;
+  if(BT.ext){const w=hm>=he?me:en;pop('判定！',300,150,'#ffffff',44);finish(w,'判定')}
+  else if(me.waza!==en.waza){const w=me.waza<en.waza?me:en;pop('技ありで判定！',300,150,'#ffd84a',40);finish(w,'判定')}
+  else if(Math.abs(hm-he)>.02){const w=hm>he?me:en;pop('判定！',300,150,'#ffffff',44);finish(w,'判定')}
+  else{BT.ext=true;BT.timer=15*60;BT.clk=1;pop('延長戦！ 先に決めたほうが勝ち',300,150,'#ffffff',28)}}
 }
 function closeFight(){const b=BT;cancelAnimationFrame(b.raf);window.removeEventListener('keydown',b.kd);window.removeEventListener('keyup',b.ku);
  document.getElementById('bt').hidden=true;BT=null;bgm('title');b.o.onEnd&&b.o.onEnd(b.winner===b.me,b.how,{hp:Math.max(0,b.me.hp)/b.me.max})}
