@@ -1261,12 +1261,12 @@ function tick(){
 function refStep(){const R=BT.ref,{me,en}=BT;R.t++;
  if(R.t===1){BT.hitstop=0;BT.slow=0;BT.zoom=1;BT.want=null;BT.want2=null;R.mx=me.x;R.ex=en.x;
   [me,en].forEach(f=>{f.state='idle';f.mv=null;f.trail=[];f.t=0;f.ai&&(f.ai.t=0,f.ai.guard=0,f.ai.re=false)});me.face=1;en.face=-1;
-  pop('止めっ！',300,115,'#ffffff',50);speakJa('止め')}
- if(R.t>=25&&R.t<=80){const k=(R.t-25)/55,e=k*k*(3-2*k);me.x=R.mx+(190-R.mx)*e;en.x=R.ex+(410-R.ex)*e;me.state=en.state='walk';me.walk+=.25;en.walk+=.25}
- if(R.t===81){me.state=en.state='idle'}
- if(R.t===95){const w=R.side==='me'?'白':'赤';pop(`${w}　技あり！`,300,115,R.side==='me'?'#ffffff':'#ff6b55',46);speakJa(w+'、技あり')}
- if(R.t===185){pop('構えて',300,125,'#ffffff',40);if(typeof sayV==='function')sayV('kancho','kamaete')}
- if(R.t===225){pop('始め！',300,115,'#ffffff',56);taiko(5);speakJa('はじめ')}
+  chime();speakJa('止め')}
+ if(R.t>=15&&R.t<=70){const k=(R.t-15)/55,e=k*k*(3-2*k);me.x=R.mx+(190-R.mx)*e;en.x=R.ex+(410-R.ex)*e;me.state=en.state='walk';me.walk+=.25;en.walk+=.25}
+ if(R.t===71){me.state=en.state='idle'}
+ if(R.t===95){const w=R.side==='me'?'白':'赤';speakJa(w+'、技あり')}
+ if(R.t===185){if(typeof sayV==='function')sayV('kancho','kamaete')}
+ if(R.t===225){taiko(5);speakJa('はじめ')}
  if(R.t>=235)BT.ref=null}
 function step(){const {me,en}=BT;
  if(BT.start>0){BT.start--;
@@ -1333,6 +1333,8 @@ function draw(){const ctx=BT.ctx,{me,en}=BT;ctx.save();
   ctx.save();ctx.globalAlpha=.4;ctx.strokeStyle=c.me?'#ffd84a':'#ff6b55';for(let i=0;i<14;i++){const yy=110+i*6;ctx.beginPath();ctx.moveTo((i*97+c.t*30)%700-100,yy);ctx.lineTo((i*97+c.t*30)%700+60,yy);ctx.stroke()}ctx.restore();
   ctx.font='44px "Dela Gothic One",sans-serif';ctx.textAlign='center';ctx.lineWidth=6;ctx.strokeStyle='#000';
   const x=k<.2?600-k/.2*300:k>.8?300-(k-.8)/.2*600:300;ctx.strokeText(c.text+'！！',x,166);ctx.fillStyle=c.me?'#ffd84a':'#ff6b55';ctx.fillText(c.text+'！！',x,166)}
+ if(BT.ref){const R=BT.ref,mid=R.t>=92&&R.t<182,txt=R.t<92?'止め！':mid?(R.side==='me'?'白　技あり！':'赤　技あり！'):R.t<222?'構えて':'始め！';
+  ctx.save();ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(0,112,600,82);ctx.font='50px "Dela Gothic One",sans-serif';ctx.textAlign='center';ctx.lineWidth=7;ctx.strokeStyle='#000';ctx.strokeText(txt,300,171);ctx.fillStyle=mid?(R.side==='me'?'#ffffff':'#ff6b55'):'#ffd84a';ctx.fillText(txt,300,171);ctx.restore()}
  BT.pops.forEach(p=>{ctx.globalAlpha=Math.max(0,1-p.t/70);const sc=p.t<6?1.4-p.t*.066:1;ctx.font=`${Math.round(p.size*sc)}px "Dela Gothic One",sans-serif`;ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeStyle='#000';const yy=p.y-p.t*.4;ctx.strokeText(p.text,p.x,yy);ctx.fillStyle=p.col;ctx.fillText(p.text,p.x,yy);ctx.globalAlpha=1});
  hud();
  if(BT.done&&BT.doneT>50){ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,600,330);ctx.font='48px "Dela Gothic One",sans-serif';ctx.textAlign='center';ctx.lineWidth=6;ctx.strokeStyle='#000';const t=BT.winner===me?'勝利！':'敗北…';ctx.strokeText(t,300,170);ctx.fillStyle=BT.winner===me?'#ffd84a':'#9fa8da';ctx.fillText(t,300,170);ctx.font='bold 16px sans-serif';ctx.fillStyle='#fff';ctx.fillText(BT.how,300,200)}
