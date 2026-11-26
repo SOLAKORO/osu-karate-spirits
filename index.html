@@ -1,4 +1,6 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body><meta charset="utf-8">
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+
+<meta charset="utf-8">
 <title>押忍！空手スピリッツ</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -121,6 +123,7 @@ img.full{display:block;width:100%;height:100%;object-fit:contain;object-position
 .chat p{margin:0;font-size:14.5px;line-height:1.55}
 
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
+.vessel{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel2)}
 .st{display:grid;grid-template-columns:5.6em 1.4em 1fr 2.2em;align-items:center;gap:6px;font-size:13px;white-space:nowrap}
 .st .rk{font-family:var(--display);text-align:center}
 .st .v{text-align:right;color:var(--mute)}
@@ -1430,7 +1433,7 @@ const C={
   kidKizuna:{n:'きずな',r:'N',cat:'',t:'go',sk:'seiken',hide:1,L:['']},kidKokoro:{n:'こころ',r:'N',cat:'',t:'ju',sk:'seiken',hide:1,L:['']},kidKizunaGi:{n:'きずな',r:'N',cat:'',t:'go',sk:'seiken',hide:1,L:['']},kidKokoroGi:{n:'こころ',r:'N',cat:'',t:'ju',sk:'seiken',hide:1,L:['']},
   dojoKid1:{n:'道場の子',r:'N',cat:'',t:'go',sk:'seiken',hide:1,L:['']},dojoKid2:{n:'道場の子',r:'N',cat:'',t:'ju',sk:'seiken',hide:1,L:['']},
 };
-const SUP_FX={higa:'稽古の疲労−10',sakura:'ポイント+5、たまにやる気アップ',nana:'体ポイント+6',hachi:'たまにやる気アップ'};
+const SUP_FX={higa:'稽古の疲労−10',sakura:'ポイント+3、たまにやる気アップ',nana:'体ポイント+4',hachi:'たまにやる気アップ'};
 const RATES=[['SSR',5],['SR',20],['R',35],['N',40]];
 const RORD='SSR SR R N';
 const TYPE_N={...Object.fromEntries(TK.map(k=>[k,TYPES[k].n])),sup:'援'};
@@ -2081,7 +2084,7 @@ function startRun(){
   if(G.slot<0||G.slot>2){const i=G.slots.findIndex(s=>!s);G.slot=i<0?0:i}
   normDeck();refreshNames();
   const bond={};G.deck.forEach(id=>bond[id]=(id===PART()?20:5)+lb(id)*10);
-  G.run={t:0,st:{tai:10,chi:8,spd:10,flex:12,tough:8,waza:6,maai:6,kata:8,kiryoku:10,rei:12},pt:{body:30,tech:30,mind:30},
+  G.run={t:0,st:{tai:10,chi:8,spd:10,flex:12,tough:8,waza:6,maai:6,kata:8,kiryoku:10,rei:12},pt:{body:20,tech:20,mind:20},
     mot:2,fat:0,belt:0,skills:['seiken'],kotsu:{},bond,ev:{},best:false,rep:0,kanban:true,inj:0,exams:0,quizOK:0,wins:0,
     cls:0,natQ:false,worldQ:false,trophies:[],tal:makeTalent(),yp:{},log:['小学1年生の春。空心道場での6年間が始まった。目標は6年生までに初段！'],assign:{},sel:null,choco:0,chat:null};
   assign();save();
@@ -2109,9 +2112,9 @@ function calc(type){
   const r=G.run,T=TYPES[type],ids=r.assign[type]||[];const camp=monthOf(r.t)===8;
   let mult=MOTMUL[r.mot]*(1+.08*ids.length);const fr=[];
   ids.forEach(id=>{mult*=1+.05*lb(id);if(C[id].t===type&&r.bond[id]>=80)fr.push(id)});
-  mult*=Math.pow(1.35,fr.length);if(camp)mult*=1.5;
+  mult*=Math.pow(1.35,fr.length);mult=Math.min(mult,MULTCAP);if(camp)mult*=1.5;mult*=PT_RATE;
   const g={};for(const k in T.gain)g[k]=Math.max(1,Math.round((T.gain[k]+ids.length*3)*mult));
-  if(ids.includes('nana'))g.body=(g.body||0)+6;if(ids.includes('sakura'))for(const k in g)g[k]+=5;
+  if(ids.includes('nana'))g.body=(g.body||0)+4;if(ids.includes('sakura'))for(const k in g)g[k]+=3;
   let fat=Math.round(T.fat*(camp&&T.fat>0?1.3:1));if(ids.includes('higa'))fat-=10;
   const risk=r.fat>=65?Math.round(r.fat-55):0;return {g,fr,fat,risk};
 }
@@ -2234,7 +2237,7 @@ function quizRun(level,n){return new Promise(done=>{
       $('[data-nx]',modal).onclick=()=>{i++;if(i<n)ask();else{modal.hidden=true;done(ok)}}})};
   ask()})}
 function examOpp(b){const names=['黒潮道場のカイト','南風会のユイ','青龍館のハルト','白波塾のミオ','若獅子会のリク','琉風道場のソウタ','海星館のアオイ','北辰会のレオ','明光道場のナナミ','紅陽会のタイガ'];
-  const pw=Math.max(EXAM_POW[b],Math.round(power()*.9));const nm=names[b%names.length];
+  const pw=EXAM_POW[b];const nm=names[b%names.length];
   const art={sk:R(0,2),hair:pick(['short','spiky','bob','pony']),hc:pick(['#222','#3a2a1a','#4a3426']),eye:pick(['b','g','sharp']),belt:BELTS[b+1].c,small:b<6?1:0,sex:Math.random()<.4?'f':undefined};
   const skills=['seiken','gedan','maegeri'];if(b>=3)skills.push('hiza','mikazuki');if(b>=5)skills.push('jodan');if(b>=7)skills.push('ushirogeri','onetwo');if(b>=9)skills.push(pick(['kakato','ushiromawashi']));
   const st={};STATS.forEach(([k])=>st[k]=clamp(Math.round(pw+R(-6,6)),5,120));
@@ -2246,18 +2249,18 @@ function exam(next){
     choices:[{label:'筆記試験を受ける',fn:()=>setTimeout(async()=>{
       const ok=await quizRun(level,nq);r.quizOK+=ok;const pass1=ok>=need;
       if(b+1>=11){juninKumite(pass1,ok,next);return}
-      show({lines:[{who:'kancho',t:pass1?`「筆記は${ok}問正解。よし、次は組手だ」`:`「筆記は${ok}問正解……。組手で取り返せるか？」`},{who:'kancho',t:b+1>=11?`「相手は黒帯の${opp.name}。黒帯に勝ってこそ、黒帯だ」`:`「相手は${opp.belt}の${opp.name}。ひとつ上の帯の相手に勝てば合格だ」`}],
-        html:`<div class="small mute">相手の強さ：${rk(opp.pow)}　あなたの戦力：${rk(Math.round(power()))}${pass1?'':`<br><span class="warn">筆記が${need}問未満なので、組手で勝っても今回は合格できません（経験は積めます）</span>`}</div>`,
+      show({lines:[{who:'kancho',t:`「筆記は${ok}問正解だった。次は組手だ」`},{who:'kancho',t:b+1>=11?`「相手は黒帯の${opp.name}。黒帯に勝ってこそ、黒帯だ」`:`「相手は${opp.belt}の${opp.name}。全力でいけ」`}],
+        html:`<div class="small mute">相手の強さ：${rk(opp.pow)}　あなたの戦力：${rk(Math.round(power()))}</div>`,
         choices:[{label:'組手（自分で操作して戦う）',fn:()=>setTimeout(()=>fightRT({me:myFighter(),en:{...opp,lvl:clamp(.5+(opp.pow-power())/45,.4,.96)},title:`${examName(b)}　vs ${opp.name}`,bg:'exam',noQuit:1,time:30,clock:3,onEnd:(win,how)=>examResult(win,pass1,opp,how,next)}),30)},
                  {label:'組手（オートで戦う）',fn:()=>setTimeout(()=>{const win=autoFight(opp.pow);examResult(win,pass1,opp,win?'判定勝ち':'判定負け',next)},30)}]})},30)}]});
 }
 /* 昇段審査：10人組手。体力は次の相手に持ちこし（1人ごとに少しだけ回復） */
 function juninKumite(pass1,ok,next){
   const r=G.run;const PW=[58,61,64,67,70,73,76,79,83,88];let i=0,wins=0,hp=1;const log10=[];
-  const opp=k=>{const o=examOpp(9);const pw=Math.max(PW[k],Math.round(power()*(.85+k*.02)));STATS.forEach(([x])=>o.st[x]=clamp(Math.round(pw+R(-5,5)),5,120));o.pow=pw;o.belt=k>=7?'黒帯':'茶帯';
+  const opp=k=>{const o=examOpp(9);const pw=PW[k];STATS.forEach(([x])=>o.st[x]=clamp(Math.round(pw+R(-5,5)),5,120));o.pow=pw;o.belt=k>=7?'黒帯':'茶帯';
     o.art={...o.art,belt:k>=7?'#14141a':BELTS[9].c,small:0};o.portrait=artSVG(o.art,'idle','grit','bust');return o};
-  show({lines:[{who:'kancho',t:`「筆記は${ok}問正解。${pass1?'よし。':'……組手で見せてみろ。'}」`},{who:'kancho',t:'「昇段審査の組手は、10人組手だ。休みなしで、10人と続けて戦う」'},{who:'kancho',t:'「体力は次の相手に持ちこしだ。最後の10人目まで、立っていられるか」'},{who:PART(),t:'「がんばって……！ 最後まで見てるからね！」'},{who:'me',t:'「押忍！！」'}],
-    title:'10人組手',html:`<div class="small mute">合格の条件：10人と戦いきって、<b>7勝以上</b>すること。一本負けで倒れたら、その場で終わりです。<br>1人終わるごとに体力が少しだけ回復します。10人目は自分で戦います。${pass1?'':'<br><span class="warn">筆記が足りないので、今回は合格できません（経験は積めます）</span>'}</div>`,
+  show({lines:[{who:'kancho',t:`「筆記は${ok}問正解だった」`},{who:'kancho',t:'「昇段審査の組手は、10人組手だ。休みなしで、10人と続けて戦う」'},{who:'kancho',t:'「体力は次の相手に持ちこしだ。最後の10人目まで、立っていられるか」'},{who:PART(),t:'「がんばって……！ 最後まで見てるからね！」'},{who:'me',t:'「押忍！！」'}],
+    title:'10人組手',html:`<div class="small mute">途中で負けても、10人目まで戦いきります。<br>1人終わるごとに体力が少しだけ回復します。10人目は自分で戦います。</div>`,
     choices:[{label:'10人組手を始める',fn:()=>setTimeout(bout,30)}]});
   function bout(){const o=opp(i),last=i===9;
     const go=manual=>{if(manual)fightRT({me:{...myFighter(),hpPct:hp},en:{...o,lvl:clamp(.48+(o.pow-power())/45+i*.012,.4,.96)},title:`10人組手 ${i+1}人目　vs ${o.name}`,bg:'exam',noQuit:1,time:30,clock:3,onEnd:(win,how,res)=>done(win,how,res.hp)});
@@ -2267,9 +2270,7 @@ function juninKumite(pass1,ok,next){
       <div class="tendots">${Array.from({length:10},(_,k)=>`<span class="${k<i?(log10[k]?'w':'l'):k===i?'c':''}">${k+1}</span>`).join('')}</div><div class="small">ここまで <b class="gain">${wins}勝</b> ${i-wins}敗</div></div>
       <div class="vsrow">${av('me',44)}<b class="vsx">VS</b><span class="av" style="--s:44px">${o.portrait}</span></div><div style="text-align:center"><b>${o.name}</b><div class="small mute">${o.belt}・強さ ${rk(o.pow)}</div></div>`,
       choices:last?[{label:'10人目！ 自分で戦う',fn:()=>setTimeout(()=>go(true),30)}]:[{label:'自分で戦う',fn:()=>setTimeout(()=>go(true),30)},{label:'オートで戦う',fn:()=>setTimeout(()=>go(false),30)}]})}
-  function done(win,how,nh){log10.push(win);if(win)wins++;hp=nh;
-    const ko=(how==='一本'||how==='降参')&&!win||how==='一本負け'||hp<=0;
-    if(ko){finish(false,`${i+1}人目で一本負け（${wins}勝）`);return}
+  function done(win,how,nh){log10.push(win);if(win)wins++;hp=win?Math.max(.05,nh):Math.max(nh,.4);
     i++;if(i>=10){finish(wins>=7,`10人組手 ${wins}勝${10-wins}敗`);return}
     hp=Math.min(1,hp+.15);(win?okS:failS)();
     show({lines:[{who:'me',t:win?pick(['「押忍！ ……次！」','「はぁ、はぁ……押忍！」']):pick(['「くっ……まだまだ！」','「押忍……！ 次は勝つ！」'])}],title:`${i}人目　${win?'勝ち':'負け'}（${how}）`,html:`<div class="small mute">体力が少し回復した（${Math.round(hp*100)}%）</div>`,choices:[{label:`${i+1}人目へ`,fn:()=>setTimeout(bout,30)}]})}
@@ -2400,7 +2401,7 @@ function souEv(k){return function(next){souApply().then(()=>souRun(k,next))}}
 function souRun(k,next){
   const r=G.run;r.ev=r.ev||{};r.ev.sou=k+1;
   const boy=P()==='kizuna',D=souData(PS())[k],L=boy?D.b:D.g;
-  const pw=Math.max(16,Math.round(power()*D.f));
+  const pw=Math.max(16,Math.round(curvePow()*D.f));
   const en=oppFighter('sou',pw);en.belt=beltName(souBeltLevel());en.lvl=clamp(.5+k*.08+(pw-power())/60,.4,.96);
   const end=(win,how)=>{
     if(win){addPt({body:15+5*k,tech:15+5*k});r.wins++;log('ライバルの颯に勝った！')}else{addPt({mind:25+5*k});log('ライバルの颯に負けた。悔しい。でも、また強くなれる。')}
@@ -2472,7 +2473,7 @@ async function ending(){
   skip=false;await wait();op.hidden=true;op.innerHTML='';op.classList.remove('hasill');ttl.hidden=true;
 }
 function dojoyaburi(next){
-  const r=G.run;const opp=Math.max(Math.round(14+r.t*1.0+R(0,8)+(r.kanban?0:6)),Math.round(power()*.9)+R(-4,4));
+  const r=G.run;const opp=Math.round(14+r.t*1.0+R(0,8)+(r.kanban?0:6));
   const name=pick(['黒狼会のリク','流れ者のテツ','けんか空手のキバ','覆面の挑戦者','黒い道場の刺客']);const vl=villainId(name);
   bgm('battle');doorS();taiko(4);
   const art={sk:R(0,3),hair:pick(['spiky','short','mohawk','bald']),hc:pick(['#111','#6a1b1b','#2b2b2b']),gc:'#24252c',belt:'#14141a',eye:'sharp',ec:'#8a1020',mask:name.includes('覆面')?1:0,band:pick([null,'#8a1020']),scar:Math.random()<.4?1:0,small:1};
@@ -2538,7 +2539,7 @@ function tourOf(r){const m=monthOf(r.t),g=gradeOf(r.t);
 const PLACE=['ベスト8','3位','準優勝','優勝'];
 function tournament(next){
   const r=G.run,T=tourOf(r);if(!T)return next();
-  const used=new Set();const opps=T.pw.map((pw,i)=>{const pk=T.kind==='world'?pw:Math.max(pw,Math.round(power()*(T.kind==='nat'?[.9,1.0,1.05][i]:[.8,.9,1.0][i])));if(T.kind==='world'&&i===2){const o=tourOpp(pw,11,true);o.name='世界王者 '+o.name.replace(/^.+?の/,'');o.belt='世界王者';return o}let o;do{o=tourOpp(pk+R(-2,2),clamp(T.bl[0]+(i>0?1:0),0,11),T.kind==='world')}while(used.has(o.name)&&used.size<10);used.add(o.name);return o});
+  const used=new Set();const opps=T.pw.map((pw,i)=>{const pk=pw;if(T.kind==='world'&&i===2){const o=tourOpp(pw,11,true);o.name='世界王者 '+o.name.replace(/^.+?の/,'');o.belt='世界王者';return o}let o;do{o=tourOpp(pk+R(-2,2),clamp(T.bl[0]+(i>0?1:0),0,11),T.kind==='world')}while(used.has(o.name)&&used.size<10);used.add(o.name);return o});
   bgm('battle');taiko(3);
   const intro=T.kind==='world'?[{who:null,t:'世界中の空手家が集まる、世界大会の会場。'},{who:'kancho',t:'「ここが世界の舞台だ。……楽しんでこい」'}]
    :T.kind==='nat'?[{who:null,t:'全国から強い選手が集まる、全国大会の日。'},{who:'kancho',t:'「全国の舞台だ。いつもの稽古を信じろ」'}]
@@ -2580,6 +2581,17 @@ const baseCost=v=>1+Math.floor(v/12)+(v>=80?Math.floor((v-70)/10):0)+(v>=100?2:0
 const talOf=(r,k)=>r.tal?(r.tal.good.includes(k)?'good':r.tal.bad.includes(k)?'bad':''):'';
 const stCost=(v,k,r)=>{r=r||G.run;const t=talOf(r,k);return Math.max(1,Math.ceil(baseCost(v)*(t==='good'?.75:t==='bad'?1.35:1)))};
 const capOf=r=>r.t>=TOTAL?120:Math.min(120,35+gradeOf(r.t)*14+(gradeOf(r.t)>=6?1:0));
+/* ===== 才能の器・選手タイプ（全部Sにはできない。どこを伸ばすかを選ぶ） ===== */
+const VESSEL=760,MULTCAP=2.2,PT_RATE=.62;
+const sumSt=st=>STATS.reduce((a,[k])=>a+(st[k]||0),0);
+const vesselLeft=r=>VESSEL-sumSt(r.st);
+const vesselHTML=r=>{const s=sumSt(r.st),w=Math.min(100,s/VESSEL*100);return `<div class="vessel"><div class="small"><b>才能の器</b>　<span class="num">${s} / ${VESSEL}</span>${s>=VESSEL?'　<span class="warn">いっぱい！</span>':''}</div><div class="bar"><i style="--w:${w}%;--c:var(--gold)"></i></div></div>`};
+const PTYPES={pow:{n:'パワー型',ks:['chi','tai','tough'],d:'重い突きと打たれ強さで押し切る'},spd:{n:'スピード型',ks:['spd','flex','maai'],d:'素早い動きで先手を取る'},tec:{n:'技型',ks:['waza','kata','maai'],d:'技のキレと気力の溜まりが武器'},mnd:{n:'心型',ks:['kiryoku','rei','kata'],d:'冷静に見きって、さばきが得意'},bal:{n:'バランス型',ks:[],d:'弱点の少ない万能タイプ'}};
+function playerType(st){const sc=Object.entries(PTYPES).filter(([k])=>k!=='bal').map(([k,t])=>[k,t.ks.reduce((a,x)=>a+(st[x]||0),0)/t.ks.length]).sort((a,b)=>b[1]-a[1]);return sc[0][1]-sumSt(st)/10<12?'bal':sc[0][0]}
+function gradeOfSt(st){const v=STATS.map(([k])=>st[k]||0).sort((a,b)=>b-a),top4=(v[0]+v[1]+v[2]+v[3])/4,avg=sumSt(st)/10;
+  const byTop=top4>=108?5:top4>=94?4:top4>=84?3:top4>=72?2:top4>=60?1:0,byAvg=avg>=72?4:avg>=64?3:avg>=55?2:avg>=45?1:0;
+  return ['E','D','C','B','A','S'][Math.min(5,playerType(st)==='bal'?Math.max(byTop,byAvg):byTop)]}
+const curvePow=()=>Math.round(14+(G.run?G.run.t:0)*.95);
 function makeTalent(){const good=P()==='kizuna'?['chi','tough']:['flex','spd'];const rest=STATS.map(([k])=>k).filter(k=>!good.includes(k));
   const g3=pick(rest);const bad=pick(rest.filter(k=>k!==g3));return {good:[...good,g3],bad:[bad]}}
 const talMark=(r,k)=>{const t=talOf(r,k);return t==='good'?'<i class="tal g" title="得意">得</i>':t==='bad'?'<i class="tal b" title="苦手">苦</i>':''};
@@ -2587,21 +2599,21 @@ function statUp(onClose){
   const r=G.run;let tab='st';if(!r.tal)r.tal=makeTalent();
   const draw=()=>{const cap=capOf(r);
     const pts=`<div class="ptrow">${Object.keys(PTN).map(k=>`<span class="pt" style="--c:${PTC[k]}"><b>${PTN[k]}</b><span class="num">${r.pt[k]||0}</span></span>`).join('')}</div>`;
-    const stHTML=STATS.map(([k,n])=>{const v=r.st[k],c=stCost(v,k),cat=PCAT[k],can=(r.pt[cat]||0)>=c&&v<cap;let c5=0,vv=v;for(let i=0;i<5;i++){c5+=stCost(vv,k);vv++}
-      return `<div class="sup"><span class="sn">${n}${talMark(r,k)}</span><span class="rk rk-${rk(v)}">${rk(v)}</span><span class="num sv">${v}</span><div class="bar"><i style="--w:${v/120*100}%;--c:${PTC[cat]}"></i><b class="capl" style="--cap:${cap/120*100}%"></b></div><span class="small mute num">${v>=cap?'上限':PTN[cat]+c}</span><button class="btn sm up1" data-up="${k}" data-n="1" ${can?'':'disabled'}>+1<small class="bsub">${v>=cap?'上限':PTN[cat]+c}</small></button><button class="btn sm" data-up="${k}" data-n="5" ${(r.pt[cat]||0)>=c5&&v+5<=cap?'':'disabled'}>+5</button></div>`}).join('');
+    const stHTML=STATS.map(([k,n])=>{const v=r.st[k],c=stCost(v,k),cat=PCAT[k],can=(r.pt[cat]||0)>=c&&v<cap&&vesselLeft(r)>0;let c5=0,vv=v;for(let i=0;i<5;i++){c5+=stCost(vv,k);vv++}
+      return `<div class="sup"><span class="sn">${n}${talMark(r,k)}</span><span class="rk rk-${rk(v)}">${rk(v)}</span><span class="num sv">${v}</span><div class="bar"><i style="--w:${v/120*100}%;--c:${PTC[cat]}"></i><b class="capl" style="--cap:${cap/120*100}%"></b></div><span class="small mute num">${v>=cap?'上限':PTN[cat]+c}</span><button class="btn sm up1" data-up="${k}" data-n="1" ${can?'':'disabled'}>+1<small class="bsub">${v>=cap?'上限':PTN[cat]+c}</small></button><button class="btn sm" data-up="${k}" data-n="5" ${(r.pt[cat]||0)>=c5&&v+5<=cap&&vesselLeft(r)>=5?'':'disabled'}>+5</button></div>`}).join('');
     const skHTML=['w','b','s','g'].map(g=>`<div class="label">${SKG[g]}</div>`+Object.keys(SK).filter(k=>SK[k].g===g).map(k=>{const s=SK[k],own=r.skills.includes(k),kt=r.kotsu[k]||0,cost=skCostK(k);
       let note='';if(s.g==='g'&&!kt&&!own)note='（コツが必要）';
       return `<div class="sk ${own?'own':''}" style="--c:${SKC[g]}"><div><div style="font-weight:700">${s.n}${kt&&!own?` <span class="tag" style="--c:var(--gold)">コツLv${kt}</span>`:''}</div><div class="d">${s.d}${note}</div></div>
       ${own?'<span class="small mute">習得済</span>':`<button class="btn sm" data-buy="${k}" ${canBuy(k)?'':'disabled'}>${Object.entries(cost).map(([c,v])=>`${PTN[c]}${v}`).join(' ')}</button>`}</div>`}).join('')).join('');
-    modal.innerHTML=`<div class="dlg"><div class="hud"><h2 style="font-size:20px">能力アップ</h2></div>${pts}
+    modal.innerHTML=`<div class="dlg"><div class="hud"><h2 style="font-size:20px">能力アップ</h2></div>${pts}${vesselHTML(r)}
       <div class="tabs"><button class="tab ${tab==='st'?'on':''}" data-tab="st">能力</button><button class="tab ${tab==='sk'?'on':''}" data-tab="sk">技を覚える</button></div>
-      ${tab==='st'?`<div class="small mute">いまの上限は <b class="gain">${cap}</b>${r.t<TOTAL?`（小${gradeOf(r.t)}）。学年が上がると上限も上がります`:''}。能力が高いほど必要なポイントが急に増えます。<i class="tal g">得</i>得意は安く、<i class="tal b">苦</i>苦手は高くつきます。</div><div class="sups">${stHTML}</div><button class="btn" data-auto>おまかせで振り分け</button>`:`<div class="small mute">コツ1レベルごとに必要ポイントが20%下がる。必殺技はSSRキャラのイベントを最後まで見るか、コツを集めて習得。</div><div class="skills">${skHTML}</div>`}
+      ${tab==='st'?`<div class="small mute">いまの上限は <b class="gain">${cap}</b>${r.t<TOTAL?`（小${gradeOf(r.t)}）。学年が上がると上限も上がります`:''}。能力が高いほど必要なポイントが急に増えます。能力の合計には<b>才能の器</b>の上限があるので、伸ばす能力をえらぼう。<i class="tal g">得</i>得意は安く、<i class="tal b">苦</i>苦手は高くつきます。</div><div class="sups">${stHTML}</div><button class="btn" data-auto>おまかせで振り分け</button>`:`<div class="small mute">コツ1レベルごとに必要ポイントが20%下がる。必殺技はSSRキャラのイベントを最後まで見るか、コツを集めて習得。</div><div class="skills">${skHTML}</div>`}
       <div class="choices"><button class="btn main" data-close>もどる</button></div></div>`;
     modal.hidden=false;
     modal.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;draw()});
-    modal.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const k=b.dataset.up,n=+b.dataset.n,cat=PCAT[k];for(let i=0;i<n;i++){const c=stCost(r.st[k],k);if((r.pt[cat]||0)<c||r.st[k]>=cap)break;r.pt[cat]-=c;r.st[k]++}coinS();save();draw()});
+    modal.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const k=b.dataset.up,n=+b.dataset.n,cat=PCAT[k];for(let i=0;i<n;i++){const c=stCost(r.st[k],k);if((r.pt[cat]||0)<c||r.st[k]>=cap||vesselLeft(r)<=0)break;r.pt[cat]-=c;r.st[k]++}coinS();save();draw()});
     const au=$('[data-auto]',modal);if(au)au.onclick=()=>{const st={...r.st},pt={...r.pt};let moved=true;const w=k=>st[k]-(talOf(r,k)==='good'?8:talOf(r,k)==='bad'?-6:0);
-      while(moved){moved=false;STATS.map(([k])=>k).sort((a,b)=>w(a)-w(b)).forEach(k=>{const cat=PCAT[k],c=stCost(st[k],k);if((pt[cat]||0)>=c&&st[k]<cap){pt[cat]-=c;st[k]++;moved=true}})}
+      while(moved){moved=false;STATS.map(([k])=>k).sort((a,b)=>w(a)-w(b)).forEach(k=>{const cat=PCAT[k],c=stCost(st[k],k);if((pt[cat]||0)>=c&&st[k]<cap&&sumSt(st)<VESSEL){pt[cat]-=c;st[k]++;moved=true}})}
       const ups=STATS.filter(([k])=>st[k]>r.st[k]);popS();
       modal.innerHTML=`<div class="dlg"><h2 style="font-size:20px">おまかせで振り分けると…</h2>${ups.length?`<div class="small mute">こんな感じに上がります</div><div class="prev">${ups.map(([k,n])=>`<div class="pv-row"><span>${n}</span><span class="rk rk-${rk(r.st[k])}">${rk(r.st[k])}</span><span class="num mute">${r.st[k]}</span><span class="arr">▶</span><span class="rk rk-${rk(st[k])}">${rk(st[k])}</span><b class="num gain">${st[k]}</b><span class="num gain small">+${st[k]-r.st[k]}</span></div>`).join('')}</div><div class="small mute">のこるポイント：${Object.keys(PTN).map(c=>`${PTN[c]}${pt[c]||0}`).join('　')}</div>`:'<div class="small mute">ポイントが足りないか、すべて上限なので、上げられる能力がありません。</div>'}
         <div class="choices">${ups.length?'<button class="btn main osu" data-ok>押忍！</button>':''}<button class="btn" data-no>やめる</button></div></div>`;
@@ -2723,12 +2735,12 @@ function vMain(){
   </div>`;
 }
 function vReg(){
-  const r=G.run,s=r.st,sum=Object.values(s).reduce((a,b)=>a+b,0)+r.skills.reduce((a,k)=>a+SK[k].bp,0)*3;
-  const grade=sum>=980?'S':sum>=850?'A':sum>=720?'B':sum>=590?'C':sum>=460?'D':'E';
+  const r=G.run,s=r.st,sum=sumSt(s);
+    const grade=gradeOfSt(s),pty=PTYPES[playerType(s)];
   const owned=Object.keys(G.col).filter(id=>!ART[id]||!ART[id].cat).filter(id=>!C[id].hide);
   const ptSum=Object.values(r.pt).reduce((a,v)=>a+v,0);
   return `<div class="hero"><div class="kicker">育成完了・卒業</div><h1 style="font-size:28px">${r.belt>=11?'初段、取得！':'修行はつづく'}</h1></div>
-  <div class="panel" style="display:flex;gap:16px;align-items:center"><div class="big rk-${grade}">${grade}</div><div><div class="label">総合評価</div><div class="num">${sum}点　${beltChip(r.belt)}</div><div class="small mute">審査 ${r.exams}回・組手の勝ち ${r.wins}回・筆記の正解 ${r.quizOK}問</div></div></div>
+  <div class="panel" style="display:flex;gap:16px;align-items:center"><div class="big rk-${grade}">${grade}</div><div><div class="label">総合評価</div><div class="num">${pty.n}　${beltChip(r.belt)}</div><div class="small mute">${pty.d}（能力合計 ${sum}）</div><div class="small mute">審査 ${r.exams}回・組手の勝ち ${r.wins}回・筆記の正解 ${r.quizOK}問</div></div></div>
   <div class="panel" style="display:flex;flex-direction:column;gap:10px"><div class="label">選手登録</div>
     <label class="small" for="rnm">選手の名前</label><input id="rnm" class="inp" maxlength="8" value="${G.me.name||PS()}">
     <div class="label">見た目</div><div class="looks"><button class="look ${G.me.look==='self'?'on':''}" data-a="rlook" data-v="self"><span class="av ${P()==='kizuna'?'t-me':'t-me2'}" style="--s:48px">${photo(P(),'face')}</span>そのまま</button>${owned.filter(id=>id!==P()).map(id=>`<button class="look ${G.me.look===id?'on':''}" data-a="rlook" data-v="${id}">${av(id,48)}${C[id].n}</button>`).join('')}</div>
@@ -2740,12 +2752,12 @@ function vReg(){
 }
 function vRoster(){
   return `<div class="hud"><button class="btn sm" data-a="go" data-v="title">← もどる</button><h2 style="font-size:20px">選手名鑑</h2></div>
-  ${G.roster.length?G.roster.map((f,i)=>`<div class="panel rost"><span class="av" style="--s:56px">${IMG[f.base]&&f.look==='self'?`<img class="ph face" src="${IMG[f.base]}" alt="">`:artSVG(f.art,'idle','normal','bust')}</span><div><b style="font-size:16px">${f.name}</b> <span class="rk rk-${f.grade}" style="font-family:var(--display)">${f.grade}</span><div class="small mute">${beltName(f.belt)}・技${f.skills.length}個・戦力${rk(Math.round(power(f.st,f.skills)))}</div></div><div class="rbtns"><button class="btn sm" data-a="rview" data-v="${i}">能力を見る</button><button class="btn sm" data-a="rfight" data-v="${i}">組手</button></div></div>`).join(''):'<div class="panel small mute">まだ登録された選手はいません。育成を最後まで進めると、ここに登録できます。</div>'}`;
+  ${G.roster.length?G.roster.map((f,i)=>`<div class="panel rost"><span class="av" style="--s:56px">${IMG[f.base]&&f.look==='self'?`<img class="ph face" src="${IMG[f.base]}" alt="">`:artSVG(f.art,'idle','normal','bust')}</span><div><b style="font-size:16px">${f.name}</b> <span class="rk rk-${f.grade}" style="font-family:var(--display)">${f.grade}</span> <span class="small mute">${f.type&&PTYPES[f.type]?PTYPES[f.type].n:''}</span><div class="small mute">${beltName(f.belt)}・技${f.skills.length}個・戦力${rk(Math.round(power(f.st,f.skills)))}</div></div><div class="rbtns"><button class="btn sm" data-a="rview" data-v="${i}">能力を見る</button><button class="btn sm" data-a="rfight" data-v="${i}">組手</button></div></div>`).join(''):'<div class="panel small mute">まだ登録された選手はいません。育成を最後まで進めると、ここに登録できます。</div>'}`;
 }
 function rosterView(i){const f=G.roster[i];if(!f)return;popS();
  const pic=IMG[f.base]&&f.look==='self'?`<img class="ph full" src="${IMG[f.base]}" alt="">`:artSVG(f.art,'osu','smile','full');
  const g=['w','b','s','g'];
- modal.innerHTML=`<div class="dlg rv-dlg"><div class="rv-top"><div class="rv-pic">${pic}</div><div><div class="label">選手名鑑 No.${G.roster.length-i}</div><h2 style="font-size:24px">${f.name}</h2>${beltChip(f.belt)}<div style="margin-top:6px">総合評価 <b class="rk rk-${f.grade}" style="font-family:var(--display);font-size:26px">${f.grade}</b></div><div class="small mute">戦力 ${rk(Math.round(power(f.st,f.skills)))}</div></div></div>
+ modal.innerHTML=`<div class="dlg rv-dlg"><div class="rv-top"><div class="rv-pic">${pic}</div><div><div class="label">選手名鑑 No.${G.roster.length-i}</div><h2 style="font-size:24px">${f.name}</h2>${beltChip(f.belt)}<div style="margin-top:6px">総合評価 <b class="rk rk-${f.grade}" style="font-family:var(--display);font-size:26px">${f.grade}</b></div><div class="small mute">${f.type&&PTYPES[f.type]?PTYPES[f.type].n+'：'+PTYPES[f.type].d:''}</div><div class="small mute">戦力 ${rk(Math.round(power(f.st,f.skills)))}</div></div></div>
   <div class="stats">${STATS.map(([k,n])=>{const v=f.st[k],x=rk(v);return `<div class="st"><span>${n}</span><span class="rk rk-${x}">${x}</span><div class="bar"><i style="--w:${v/120*100}%;--c:${PTC[PCAT[k]]}"></i></div><span class="v num">${v}</span></div>`}).join('')}</div>
   ${g.map(x=>{const ks=f.skills.filter(k=>SK[k]&&SK[k].g===x);return ks.length?`<div><div class="label">${SKG[x]}</div><div class="row" style="margin-top:4px">${ks.map(k=>`<span class="tag" style="--c:${SKC[x]}">${SK[k].n}</span>`).join('')}</div></div>`:''}).join('')}
   ${(f.trophies||[]).length?`<div><div class="label">大会の成績</div><div class="troph" style="margin-top:4px">${f.trophies.map(t=>`<span>${/優勝/.test(t)&&!/準優勝/.test(t)?"🏆":/準優勝/.test(t)?"🥈":"🥉"} ${t}</span>`).join("")}</div></div>`:""}<div class="choices"><button class="btn main" data-rf>この選手で組手</button><button class="btn" data-close>もどる</button></div></div>`;
@@ -2848,8 +2860,8 @@ const A={
   rfight:i=>{G.kfighter=+i;G.screen='kumite';save();render()},
   rlook:v=>{const nm=$('#rnm');if(nm)G.me.name=nm.value.trim()||G.me.name;G.me.look=v;save();render()},
   register:()=>{const r=G.run,nm=$('#rnm');G.me.name=(nm&&nm.value.trim())||PS();
-    const s=r.st,sum=Object.values(s).reduce((a,b)=>a+b,0)+r.skills.reduce((a,k)=>a+SK[k].bp,0)*3;const grade=sum>=980?'S':sum>=850?'A':sum>=720?'B':sum>=590?'C':sum>=460?'D':'E';
-    G.roster.unshift({name:G.me.name,base:P(),look:G.me.look,art:meArt(),st:{...s},skills:[...r.skills],belt:r.belt,grade,trophies:[...(r.trophies||[])]});G.roster=G.roster.slice(0,20);
+    const s=r.st;const grade=gradeOfSt(s);
+    G.roster.unshift({name:G.me.name,base:P(),look:G.me.look,art:meArt(),st:{...s},skills:[...r.skills],belt:r.belt,grade,type:playerType(s),trophies:[...(r.trophies||[])]});G.roster=G.roster.slice(0,20);
     G.stones+=600;G.run=null;G.screen='roster';save();render();fanfareS();sayV('me','osu')},
 };
 app.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b||b.disabled)return;A[b.dataset.a]&&A[b.dataset.a](b.dataset.v)});
